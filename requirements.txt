@@ -1,0 +1,6 @@
+werkzeug
+scikit-learn
+Pillow
+face_recognition
+Flask_MonitoringDashboard
+Flask

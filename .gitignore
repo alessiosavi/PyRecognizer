@@ -71,6 +71,7 @@ fabric.properties
 
 # CUSTOM
 .idea
-pyrecognizer.log
+log
 dataset
 *.pyc
+flask_monitoringdashboard.db
