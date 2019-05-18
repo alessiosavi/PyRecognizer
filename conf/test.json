@@ -10,6 +10,7 @@
 	"network": {
 		"host": "locahost",
 		"port": 11001,
+		"templates": "api/templates",
 		"SSL": {
 			"enabled": false,
 			"cert.pub": "/dev/null",

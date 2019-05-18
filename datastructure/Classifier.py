@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Core utils for manage face recognition process
 """
@@ -82,15 +83,34 @@ class Classifier(object):
 		:param classifier_file:
 		:return:
 		"""
-		log.debug("load_classifier | Loading classifier from file ... | File: {}".format(classifier_file))
+		log.debug("load_classifier_from_file | Loading classifier from file ... | File: {}".format(classifier_file))
 		if self.classifier is None and self.model_path is None:
 			log.error("load_classifier_from_file | Classifier path not set :/")
-			raise Exception("Classifier path not set :/")
+			raise Exception("load_classifier_from_file | Classifier path not set :/")
+
+		if classifier_file is None:
+			log.info("load_classifier_from_file | Skipping classifier loading ... | "
+			         "Are you going to start a new training?")
+			return
 
 		# Load a trained KNN model (if one was passed in)
+		err = None
 		if self.classifier is None:
-			with open(os.path.join(self.model_path, classifier_file), 'rb') as f:
-				self.classifier = pickle.load(f)
+			log.debug("load_classifier_from_file | Loading classifier from file ...")
+			if os.path.isdir(self.model_path):
+				log.debug("load_classifier_from_file | Path {} exist ...".format(self.model_path))
+				filename = os.path.join(self.model_path, classifier_file)
+				if os.path.isfile(filename):
+					log.debug("load_classifier_from_file | File {} exist ...".format(filename))
+					with open(filename, 'rb') as f:
+						self.classifier = pickle.load(f)
+				else:
+					err = "load_classifier_from_file | FATAL | File {} DOES NOT EXIST ...".format(filename)
+			else:
+				err = "load_classifier_from_file | FATAL | Path {} DOES NOT EXIST ...".format(self.model_path)
+		if err is not None:
+			log.error(err)
+			raise Exception(err)
 		return
 
 	def train(self, X, Y):
@@ -167,12 +187,16 @@ class Classifier(object):
 			For faces of unrecognized persons, the name 'unknown' will be returned.
 		"""
 
+		if self.classifier is None:
+			log.error("predict | Be sure that you have loaded/trained a nerual model")
+			return None
+
 		# Load image file and find face locations
 		X_img = face_recognition.load_image_file(X_img_path)
 		X_face_locations = face_recognition.face_locations(X_img)
 
-		# If no faces are found in the image, return an empty result.
-		if len(X_face_locations) == 0:
+		# If no faces are found in the image, or more than one face are found, return an empty result.
+		if len(X_face_locations) != 1:
 			return []
 
 		# Find encodings for faces in the test iamge
@@ -191,6 +215,7 @@ class Classifier(object):
 				prediction.append((pred, loc))
 			else:
 				log.debug("predict | Face {} not recognized :/".format(pred))
+				prediction = -1
 		log.debug("predict_folder | Prediction: {}".format(prediction))
 
 		return prediction

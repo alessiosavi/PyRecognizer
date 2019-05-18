@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 PyRecognizer loader
 """
@@ -6,34 +7,41 @@ import json
 import os
 
 import flask_monitoringdashboard as dashboard
-from flask import Flask, flash, request, send_from_directory, url_for
+from flask import Flask, flash, jsonify, request, send_from_directory
 from werkzeug.utils import redirect, secure_filename
 
-from api.Api import upload_image_predict
+from api.Api import predict_image, upload_image_predict
 from datastructure.Classifier import Classifier
-from utils.util import load_logger, print_prediction_on_image
+from utils.util import load_logger
 
 # ===== LOAD CONFIGURATION FILE =====
+# TODO: Add argument parser for manage configuration file
 CONFIG_FILE = "conf/test.json"
+
+PREDICTION_PATH = "/tmp/upload/predictions/"
 
 with open(CONFIG_FILE) as f:
 	CFG = json.load(f)
 
 log = load_logger(CFG["logging"]["level"], CFG["logging"]["path"], CFG["logging"]["prefix"])
 
-# ===== FLASK CONFIGURATION =====
 # $(base64 /dev/urandom  | head -n 1 | md5sum | awk '{print $1}')
 SECRET_KEY = str(base64.b64encode(bytes(os.urandom(24)))).encode()
 UPLOAD_FOLDER = "/tmp/upload"
 
-app = Flask(__name__, template_folder="api/templates")
+# ===== FLASK CONFIGURATION =====
+
+app = Flask(__name__, template_folder=CFG["network"]["templates"])
 app.secret_key = SECRET_KEY
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 # =====FLASK DASHBOARD CONFIGURATION =====
+
 dashboard.config.init_from(file=CFG["dashboard"]["config_file"])
 dashboard.bind(app, SECRET_KEY)
 
 # ===== CLASSIFIER CONFIGURATION =====
+
 log.debug("Init classifier ...")
 clf = Classifier()
 # Loading mandatory data ...
@@ -53,7 +61,7 @@ def home():
 
 
 @app.route('/', methods=["POST"])
-def upload():
+def predict():
 	"""
 
 	:return:
@@ -67,12 +75,7 @@ def upload():
 	filename = secure_filename(file.filename)
 	img_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
 	file.save(img_path)
-	prediction = clf.predict(img_path)
-	print_prediction_on_image(img_path, prediction)
-	return redirect(url_for('uploaded_file', filename="predict.png"))
-
-
-# return redirect(url_for('uploaded_file', filename=filename))
+	return jsonify(response=predict_image(img_path, clf, PREDICTION_PATH))
 
 
 @app.route('/uploads/<filename>')
@@ -82,7 +85,7 @@ def uploaded_file(filename):
 	:param filename:
 	:return:
 	"""
-	return send_from_directory("/tmp/upload/prediction/", filename)
+	return send_from_directory(PREDICTION_PATH, filename)
 
 
 if __name__ == '__main__':
