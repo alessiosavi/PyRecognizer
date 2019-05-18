@@ -194,7 +194,12 @@ class Classifier(object):
 			return None
 
 		# Load image file and find face locations
-		X_img = face_recognition.load_image_file(X_img_path)
+		try:
+			# TODO: Necessary cause at this point we are not sure what file type is this ...
+			X_img = face_recognition.load_image_file(X_img_path)
+		except OSError:
+			log.error("predict | What have you uploaded ???")
+			return -2
 		X_face_locations = face_recognition.face_locations(X_img)
 
 		# If no faces are found in the image, or more than one face are found, return an empty result.
