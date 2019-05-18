@@ -75,3 +75,4 @@ log
 dataset
 *.pyc
 flask_monitoringdashboard.db
+uploads

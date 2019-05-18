@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PyRecognizer Training Page!</title>
+
+</head>
+<body>
+<h1>Upload a zip file with all person that you want to save!</h1>
+<form enctype=multipart/form-data method=post>
+    <input name=file type=file>
+    <input type=submit value=Upload>
+</form>
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+{% for message in messages %}
+<p style='color:crimson'>{{ message }} </p>
+{% endfor %}
+{% endif %}
+{% endwith %}
+</body>
+</html>

@@ -3,23 +3,14 @@
 Custom function that will be wrapped for be HTTP compliant
 """
 
+import zipfile
 from logging import getLogger
-
-from flask import render_template
+from os.path import join as path_join
 
 from datastructure.Response import Response
 from utils.util import print_prediction_on_image, random_string
 
 log = getLogger()
-
-
-def upload_image_predict(html_file):
-	"""
-	Parse the HTML file
-	:param html_file:
-	:return:
-	"""
-	return render_template(html_file)
 
 
 def predict_image(img_path, clf, PREDICTION_PATH):
@@ -28,7 +19,7 @@ def predict_image(img_path, clf, PREDICTION_PATH):
 	:param PREDICTION_PATH: global variable where image recognized are saved
 	:param img_path: image that have to be predicted
 	:param clf: classifier in charge to predict the image
-	:return:
+	:return: Response dictionary jsonizable
 	"""
 	response = Response()
 	log.debug("predict_image | Predicting {}".format(img_path))
@@ -62,9 +53,33 @@ def predict_image(img_path, clf, PREDICTION_PATH):
 			log.error("predict_image | Seems that in this images there are too many faces :/")
 
 	elif prediction == -1:
-		# TODO: Add custom algorithm that "try to understand" who haven't never recognized
+		# TODO: Add custom algorithm that "try to understand" who has never been recognized
 		response.error = "FACE_NOT_RECOGNIZED"
 		response.description = "Seems that this face is related to nobody that i've seen before ..."
 		log.error("predict_image | Seems that this face is lated to nobody that i've seen before ...")
 
+	return response.__dict__
+
+
+def train_network(folder_uncompress, zip_file, clf):
+	"""
+	Train a new neural model with the zip file provided
+	:param folder_uncompress:
+	:param zip_file:
+	:param clf:
+	:return:
+	"""
+	log.debug("train_network | uncompressing zip file ...")
+	folder_name = path_join(folder_uncompress, random_string())
+	zip_ref = zipfile.ZipFile(zip_file)
+	zip_ref.extractall(folder_name)
+	zip_ref.close()
+	log.debug("train_network | zip file uncompressed!")
+	clf.init_peoples_list(peoples_path=folder_name)
+	dataset = clf.init_dataset()
+	neural_model_file = clf.train(dataset["X"], dataset["Y"])
+	response = Response()
+	response.status = "OK"
+	response.data = neural_model_file
+	response.description = "Model succesfully trained!"
 	return response.__dict__
