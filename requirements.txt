@@ -4,3 +4,5 @@ Pillow
 face_recognition
 Flask_MonitoringDashboard
 Flask
+olefile
+tqdm

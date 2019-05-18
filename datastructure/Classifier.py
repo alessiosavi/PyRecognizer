@@ -12,6 +12,7 @@ from pprint import pformat
 
 import face_recognition
 from sklearn.neighbors import KNeighborsClassifier
+from tqdm import tqdm
 
 from datastructure.Person import Person
 
@@ -144,7 +145,8 @@ class Classifier(object):
 		if peoples_path is not None and os.path.isdir(peoples_path):
 			self.training_dir = peoples_path
 
-		for people_name in os.listdir(self.training_dir):
+		for people_name in tqdm(os.listdir(self.training_dir),
+		                        total=len(os.listdir(self.training_dir)), desc="Init people list ..."):
 			log.debug("init_peoples_list | Initalizing [{}]".format(people_name))
 			# Filter only folder
 			if os.path.isdir(os.path.join(self.training_dir, people_name)):
