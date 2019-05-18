@@ -1,0 +1,25 @@
+{
+	"PyRecognizer": {
+		"Version": "0.0.1"
+	},
+	"logging": {
+		"path": "./",
+		"prefix": "pyrecognizer.log",
+		"level": "debug"
+	},
+	"network": {
+		"host": "locahost",
+		"port": 11001,
+		"SSL": {
+			"enabled": false,
+			"cert.pub": "/dev/null",
+			"cert.priv": "/dev/null"
+		}
+	},
+	"classifier": {
+		"trainin_dir": "dataset/images",
+		"model_path": "dataset/model",
+		"n_neighbors": "",
+		"knn_algo": ""
+	}
+}
