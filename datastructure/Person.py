@@ -7,6 +7,7 @@ from os.path import isdir
 
 from face_recognition import face_encodings, face_locations, load_image_file
 from face_recognition.face_recognition_cli import image_files_in_folder
+from tqdm import tqdm
 
 log = getLogger()
 
@@ -41,9 +42,13 @@ class Person(object):
 		if self.path != "" and isdir(self.path):
 			log.debug("initDataset | Paramater provided, iterating images ..")
 			# Iterating the images
-			for img_path in image_files_in_folder(self.path):
+			for img_path in tqdm(image_files_in_folder(self.path),
+			                     total=len(image_files_in_folder(self.path)), desc=" Init dataset ..."):
 				log.debug("initDataset | Loading {0} ...".format(img_path))
-				image = load_image_file(img_path)
+				try:
+					image = load_image_file(img_path)
+				except OSError:
+					log.error("init_dataset | === FATAL === | Image {} is corrupted!!".format(img_path))
 				log.debug("initDataset | Image loaded! | Searching for face ...")
 				# Array of w,x,y,z coordinates
 				face_bounding_boxes = face_locations(image)
