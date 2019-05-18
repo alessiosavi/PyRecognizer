@@ -8,7 +8,7 @@ from logging import getLogger
 from os.path import join as path_join
 
 from datastructure.Response import Response
-from utils.util import print_prediction_on_image, random_string
+from utils.util import print_prediction_on_image, random_string,remove_dir
 
 log = getLogger()
 
@@ -58,6 +58,11 @@ def predict_image(img_path, clf, PREDICTION_PATH):
 		response.description = "Seems that this face is related to nobody that i've seen before ..."
 		log.error("predict_image | Seems that this face is lated to nobody that i've seen before ...")
 
+	elif prediction == -2:
+		response.error = "FILE_NOT_VALID"
+		response.description = "Seems that the file that you have tried to upload is not valid ..."
+		log.error("predict_image |Seems that the file that you have tried to upload is not valid ...")
+
 	return response.__dict__
 
 
@@ -78,8 +83,11 @@ def train_network(folder_uncompress, zip_file, clf):
 	clf.init_peoples_list(peoples_path=folder_name)
 	dataset = clf.init_dataset()
 	neural_model_file = clf.train(dataset["X"], dataset["Y"])
+	log.debug("train_network | Removing unzipped files")
+	remove_dir(folder_name)
 	response = Response()
 	response.status = "OK"
 	response.data = neural_model_file
 	response.description = "Model succesfully trained!"
+
 	return response.__dict__

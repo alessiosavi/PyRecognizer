@@ -8,7 +8,7 @@ import os
 import random
 import string
 from logging.handlers import TimedRotatingFileHandler
-
+import shutil
 from PIL import Image, ImageDraw
 
 levels = {
@@ -83,3 +83,21 @@ def random_string(string_length=10):
 	"""
 	letters = string.ascii_lowercase
 	return ''.join(random.choice(letters) for i in range(string_length))
+
+
+def zip_data(file_to_zip,path):
+	"""
+
+	:param file_to_zip:
+	:param path:
+	:return:
+	"""
+
+	shutil.make_archive(file_to_zip, 'zip', path)
+
+
+def remove_dir(dir):
+	if os.path.isdir(dir):
+		shutil.rmtree(dir)
+
+
