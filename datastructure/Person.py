@@ -1,13 +1,14 @@
+# -*- coding: utf-8 -*-
 """
 Common structure for define how to manage a person
 """
-import logging
+from logging import getLogger
 from os.path import isdir
 
 from face_recognition import face_encodings, face_locations, load_image_file
 from face_recognition.face_recognition_cli import image_files_in_folder
 
-log = logging.getLogger()
+log = getLogger()
 
 
 class Person(object):

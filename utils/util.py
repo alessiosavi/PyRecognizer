@@ -1,8 +1,12 @@
+# -*- coding: utf-8 -*-
 """
 Common method for reuse code
 """
 
 import logging
+import os
+import random
+import string
 from logging.handlers import TimedRotatingFileHandler
 
 from PIL import Image, ImageDraw
@@ -16,10 +20,12 @@ levels = {
 }
 
 
-def print_prediction_on_image(img_path, predictions):
+def print_prediction_on_image(img_path, predictions, path_to_save, file_to_save):
 	"""
 	Shows the face recognition results visually.
 
+	:param path_to_save:
+	:param file_to_save:
 	:param img_path: path to image to be recognized
 	:param predictions: results of the predict function
 	:return:
@@ -44,8 +50,7 @@ def print_prediction_on_image(img_path, predictions):
 
 	# Display the resulting image
 	# pil_image.show()
-	path = "/tmp/upload/prediction/predict.png"
-	pil_image.save(path, "PNG")
+	pil_image.save(os.path.join(path_to_save, file_to_save), "PNG")
 
 
 def load_logger(level, path, name):
@@ -68,3 +73,13 @@ def load_logger(level, path, name):
 	logger.addHandler(handler)
 	logger.setLevel(level)
 	return logger
+
+
+def random_string(string_length=10):
+	"""
+	Generate a random string of fixed length
+	:param string_length:
+	:return:
+	"""
+	letters = string.ascii_lowercase
+	return ''.join(random.choice(letters) for i in range(string_length))
