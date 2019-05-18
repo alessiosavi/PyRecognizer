@@ -1,6 +1,9 @@
 {
 	"PyRecognizer": {
-		"Version": "0.0.1"
+		"Version": "0.0.1",
+		"temp_upload_training": "uploads/training/",
+		"temp_upload_predict": "uploads/predict/",
+		"temp_upload": "uploads/upload"
 	},
 	"logging": {
 		"path": "log/",
@@ -10,7 +13,7 @@
 	"network": {
 		"host": "locahost",
 		"port": 11001,
-		"templates": "api/templates",
+		"templates": "api/templates/",
 		"SSL": {
 			"enabled": false,
 			"cert.pub": "/dev/null",
@@ -18,14 +21,14 @@
 		}
 	},
 	"classifier": {
-		"trainin_dir": "dataset/images",
-		"model_path": "dataset/model",
+		"trainin_dir": "dataset/images/",
+		"model_path": "dataset/model/",
 		"model": "model-20190518_124116.clf",
 		"n_neighbors": "",
 		"knn_algo": ""
 	},
 	"data": {
-		"test_data": "/tmp/test_data"
+		"test_data": "/tmp/test_data/"
 	},
 	"dashboard": {
 		"config_file": "conf/dashboard.ini"

@@ -7,10 +7,10 @@ import json
 import os
 
 import flask_monitoringdashboard as dashboard
-from flask import Flask, flash, jsonify, request, send_from_directory
+from flask import Flask, flash, jsonify, render_template, request, send_from_directory
 from werkzeug.utils import redirect, secure_filename
 
-from api.Api import predict_image, upload_image_predict
+from api.Api import predict_image, train_network
 from datastructure.Classifier import Classifier
 from utils.util import load_logger
 
@@ -18,22 +18,26 @@ from utils.util import load_logger
 # TODO: Add argument parser for manage configuration file
 CONFIG_FILE = "conf/test.json"
 
-PREDICTION_PATH = "/tmp/upload/predictions/"
-
 with open(CONFIG_FILE) as f:
 	CFG = json.load(f)
 
 log = load_logger(CFG["logging"]["level"], CFG["logging"]["path"], CFG["logging"]["prefix"])
 
+# TODO: Verify the presence -> create directory
+# NOTE: create a directory every time that you need to use this folder
+TMP_UPLOAD_PREDICTION = CFG["PyRecognizer"]["temp_upload_predict"]
+TMP_UPLOAD_TRAINING = CFG["PyRecognizer"]["temp_upload_training"]
+TMP_UPLOAD = CFG["PyRecognizer"]["temp_upload"]
+
 # $(base64 /dev/urandom  | head -n 1 | md5sum | awk '{print $1}')
 SECRET_KEY = str(base64.b64encode(bytes(os.urandom(24)))).encode()
-UPLOAD_FOLDER = "/tmp/upload"
 
 # ===== FLASK CONFIGURATION =====
 
 app = Flask(__name__, template_folder=CFG["network"]["templates"])
 app.secret_key = SECRET_KEY
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# Used by flask when a upload is made
+app.config['UPLOAD_FOLDER'] = TMP_UPLOAD
 
 # =====FLASK DASHBOARD CONFIGURATION =====
 
@@ -44,8 +48,6 @@ dashboard.bind(app, SECRET_KEY)
 
 log.debug("Init classifier ...")
 clf = Classifier()
-# Loading mandatory data ...
-clf.trainin_dir = CFG["classifier"]["trainin_dir"]
 clf.model_path = CFG["classifier"]["model_path"]
 clf.load_classifier_from_file(CFG["classifier"]["model"])
 
@@ -57,13 +59,13 @@ def home():
 	"""
 	Show the html template for upload the image
 	"""
-	return upload_image_predict("upload.html")
+	return render_template("upload.html")
 
 
 @app.route('/', methods=["POST"])
 def predict():
 	"""
-
+	Load the image using the HTML page and predict who is
 	:return:
 	"""
 	# check if the post request has the file part
@@ -75,17 +77,39 @@ def predict():
 	filename = secure_filename(file.filename)
 	img_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
 	file.save(img_path)
-	return jsonify(response=predict_image(img_path, clf, PREDICTION_PATH))
+	return jsonify(response=predict_image(img_path, clf, TMP_UPLOAD_PREDICTION))
+
+
+@app.route('/train', methods=['GET'])
+def train():
+	"""
+	Show the html template for training the neural network
+	"""
+	return render_template("train.html")
+
+
+@app.route('/train', methods=['POST'])
+def train_http():
+	"""
+
+	:return:
+	"""
+	# check if the post request has the file part
+	if 'file' not in request.files or request.files['file'].filename == '':
+		flash('No file choosed :/', category="error")
+		return redirect(request.url)  # Return to HTML page [GET]
+	file = request.files['file']
+	return jsonify(train_network(TMP_UPLOAD_TRAINING, file, clf))
 
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
 	"""
-
+	Expose images only to the one that know the image name
 	:param filename:
 	:return:
 	"""
-	return send_from_directory(PREDICTION_PATH, filename)
+	return send_from_directory(TMP_UPLOAD_PREDICTION, filename)
 
 
 if __name__ == '__main__':
