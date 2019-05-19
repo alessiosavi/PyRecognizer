@@ -2,13 +2,14 @@
 """
 Common method for reuse code
 """
-
+import json
 import logging
 import os
 import random
+import shutil
 import string
 from logging.handlers import TimedRotatingFileHandler
-import shutil
+
 from PIL import Image, ImageDraw
 
 levels = {
@@ -53,6 +54,33 @@ def print_prediction_on_image(img_path, predictions, path_to_save, file_to_save)
 	pil_image.save(os.path.join(path_to_save, file_to_save), "PNG")
 
 
+def init_main_data(config_file):
+	"""
+	Parse the configuration file and return the necessary data for initalize the tool
+	:param config_file:
+	:return:
+	"""
+	with open(config_file) as f:
+		CFG = json.load(f)
+
+	log = load_logger(CFG["logging"]["level"], CFG["logging"]["path"], CFG["logging"]["prefix"])
+
+	# TODO: Verify the presence -> create directory
+	# NOTE: create a directory every time that you need to use this folder
+	TMP_UPLOAD_PREDICTION = CFG["PyRecognizer"]["temp_upload_predict"]
+	TMP_UPLOAD_TRAINING = CFG["PyRecognizer"]["temp_upload_training"]
+	TMP_UPLOAD = CFG["PyRecognizer"]["temp_upload"]
+
+	if not os.path.exists(TMP_UPLOAD_PREDICTION):
+		os.makedirs(TMP_UPLOAD_PREDICTION)
+	if not os.path.exists(TMP_UPLOAD_TRAINING):
+		os.makedirs(TMP_UPLOAD_TRAINING)
+	if not os.path.exists(TMP_UPLOAD):
+		os.makedirs(TMP_UPLOAD)
+
+	return CFG, log, TMP_UPLOAD_PREDICTION, TMP_UPLOAD_TRAINING, TMP_UPLOAD
+
+
 def load_logger(level, path, name):
 	"""
 
@@ -85,7 +113,7 @@ def random_string(string_length=10):
 	return ''.join(random.choice(letters) for i in range(string_length))
 
 
-def zip_data(file_to_zip,path):
+def zip_data(file_to_zip, path):
 	"""
 
 	:param file_to_zip:
@@ -99,5 +127,3 @@ def zip_data(file_to_zip,path):
 def remove_dir(dir):
 	if os.path.isdir(dir):
 		shutil.rmtree(dir)
-
-

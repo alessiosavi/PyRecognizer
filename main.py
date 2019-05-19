@@ -3,7 +3,6 @@
 PyRecognizer loader
 """
 import base64
-import json
 import os
 
 import flask_monitoringdashboard as dashboard
@@ -12,22 +11,13 @@ from werkzeug.utils import redirect, secure_filename
 
 from api.Api import predict_image, train_network
 from datastructure.Classifier import Classifier
-from utils.util import load_logger
+from utils.util import init_main_data
 
 # ===== LOAD CONFIGURATION FILE =====
 # TODO: Add argument parser for manage configuration file
 CONFIG_FILE = "conf/test.json"
 
-with open(CONFIG_FILE) as f:
-	CFG = json.load(f)
-
-log = load_logger(CFG["logging"]["level"], CFG["logging"]["path"], CFG["logging"]["prefix"])
-
-# TODO: Verify the presence -> create directory
-# NOTE: create a directory every time that you need to use this folder
-TMP_UPLOAD_PREDICTION = CFG["PyRecognizer"]["temp_upload_predict"]
-TMP_UPLOAD_TRAINING = CFG["PyRecognizer"]["temp_upload_training"]
-TMP_UPLOAD = CFG["PyRecognizer"]["temp_upload"]
+CFG, log, TMP_UPLOAD_PREDICTION, TMP_UPLOAD_TRAINING, TMP_UPLOAD = init_main_data(CONFIG_FILE)
 
 # $(base64 /dev/urandom  | head -n 1 | md5sum | awk '{print $1}')
 SECRET_KEY = str(base64.b64encode(bytes(os.urandom(24)))).encode()
@@ -51,6 +41,7 @@ clf = Classifier()
 clf.model_path = CFG["classifier"]["model_path"]
 clf.load_classifier_from_file(CFG["classifier"]["model"])
 
+# TODO Add check on extension
 allowed_ext = ["jpg", "jpeg", "png"]
 
 
@@ -73,7 +64,6 @@ def predict():
 		flash('No file choosed :/', category="error")
 		return redirect(request.url)  # Return to HTML page [GET]
 	file = request.files['file']
-	# TODO: Add check on extension
 	filename = secure_filename(file.filename)
 	img_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
 	file.save(img_path)
