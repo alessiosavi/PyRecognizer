@@ -8,7 +8,7 @@ from logging import getLogger
 from os.path import join as path_join
 
 from datastructure.Response import Response
-from utils.util import print_prediction_on_image, random_string,remove_dir
+from utils.util import print_prediction_on_image, random_string, remove_dir
 
 log = getLogger()
 
