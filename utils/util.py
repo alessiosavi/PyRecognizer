@@ -5,9 +5,12 @@ Common method for reuse code
 import json
 import logging
 import os
+import pickle
 import random
 import shutil
 import string
+import zipfile
+from datetime import datetime
 from logging.handlers import TimedRotatingFileHandler
 
 from PIL import Image, ImageDraw
@@ -124,6 +127,49 @@ def zip_data(file_to_zip, path):
 	shutil.make_archive(file_to_zip, 'zip', path)
 
 
-def remove_dir(dir):
-	if os.path.isdir(dir):
-		shutil.rmtree(dir)
+def unzip_data(unzipped_folder, zip_file):
+	"""
+	Unzip the zip file in input in the given 'unzipped_folder'
+	:param unzipped_folder:
+	:param zip_file:
+	:return:
+	"""
+	log = logging.getLogger()
+	folder_name = os.path.join(unzipped_folder, random_string())
+	log.debug("unzip_data | Unzipping {} into {}".format(zip_file, folder_name))
+	zip_ref = zipfile.ZipFile(zip_file)
+	zip_ref.extractall(folder_name)
+	zip_ref.close()
+	log.debug("unzip_data | File uncompressed!")
+	return folder_name
+
+
+def dump_dataset(dataset, path, dataset_name=None):
+	"""
+
+	:param dataset:
+	:param path:
+	:param dataset_name:
+	:return:
+	"""
+	log = logging.getLogger()
+	log.debug("dump_dataset | Dumping {} {}".format(path, dataset_name))
+	if os.path.exists(path) and os.path.isdir(path):
+		if dataset_name is None:
+			dataset_name = "image_dataset"
+		time_parsed = datetime.now().strftime('%Y%m%d_%H%M%S')
+		dataset_name = os.path.join(path, "{}-{}".format(dataset_name, time_parsed))
+		with open(dataset_name + ".dat", 'wb') as f:
+			pickle.dump(dataset, f)
+
+
+def remove_dir(directory):
+	"""
+	Wrapper for remove a directory
+	:param directory:
+	:return:
+	"""
+	log = logging.getLogger()
+	log.debug("remove_dir | Removing directory {}".format(directory))
+	if os.path.isdir(directory):
+		shutil.rmtree(directory)
