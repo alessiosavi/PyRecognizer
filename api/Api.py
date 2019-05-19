@@ -2,13 +2,15 @@
 """
 Custom function that will be wrapped for be HTTP compliant
 """
-
+import os
+import pickle
+import time
 import zipfile
 from logging import getLogger
 from os.path import join as path_join
 
 from datastructure.Response import Response
-from utils.util import print_prediction_on_image, random_string, remove_dir
+from utils.util import print_prediction_on_image, random_string, remove_dir, unzip_data
 
 log = getLogger()
 
@@ -23,7 +25,10 @@ def predict_image(img_path, clf, PREDICTION_PATH):
 	"""
 	response = Response()
 	log.debug("predict_image | Predicting {}".format(img_path))
-	prediction = clf.predict(img_path)
+	if clf is None:
+		prediction = None
+	else:
+		prediction = clf.predict(img_path)
 	log.debug("predict_image | Image analyzed!")
 	# Manage success
 	if prediction is not None and isinstance(prediction, list) and len(prediction) == 1:
@@ -91,3 +96,60 @@ def train_network(folder_uncompress, zip_file, clf):
 	response.description = "Model succesfully trained!"
 
 	return response.__dict__
+
+
+def tune_network(folder_uncompress, zip_file, clf):
+	"""
+	Train a new neural model with the zip file provided
+	:param folder_uncompress:
+	:param zip_file:
+	:param clf:
+	:return:
+	"""
+	log.debug("tune_network | uncompressing zip file ...")
+	check = verify_extension(zip_file.filename)
+	if check == "zip":  # Image provided
+		folder_name = unzip_data(folder_uncompress, zip_file)
+		log.debug("tune_network | zip file uncompressed!")
+		clf.init_peoples_list(peoples_path=folder_name)
+		dataset = clf.init_dataset()
+	elif check == "dat":
+		dataset = pickle.load(zip_file)
+	else:
+		dataset = None
+
+	if dataset is not None:
+		start_time = time.time()
+		neural_model_file = clf.tuning(dataset["X"], dataset["Y"])
+		elapsed_time = time.time() - start_time
+
+		log.debug("tune_network | Removing unzipped files")
+		if check == "zip":
+			# TODO: Refactor this method :/
+			remove_dir(folder_name)
+		response = Response()
+		response.status = "OK"
+		response.data = neural_model_file
+		response.description = "Model succesfully trained! | {}".format(
+			time.strftime("%H:%M:%S.%f", time.gmtime(elapsed_time)))
+	else:
+		response = Response()
+		response.error = "ERROR DURING LOADING DAT"
+	return response.__dict__
+
+
+def verify_extension(file):
+	"""
+	Wrapper for validate file
+	:param file:
+	:return:
+	"""
+	extension = os.path.splitext(file)[1]
+	log.debug("verify_extension | File: {} | Ext: {}".format(file, extension))
+	if extension == ".zip":
+		# In this case we have to analyze the photos
+		return "zip"
+	elif extension == ".dat":
+		# Photos have been alredy analyzed, dataset is ready!
+		return "dat"
+	return None
