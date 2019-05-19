@@ -9,7 +9,7 @@ import flask_monitoringdashboard as dashboard
 from flask import Flask, flash, jsonify, render_template, request, send_from_directory
 from werkzeug.utils import redirect, secure_filename
 
-from api.Api import predict_image, train_network
+from api.Api import predict_image, train_network, tune_network
 from datastructure.Classifier import Classifier
 from utils.util import init_main_data
 
@@ -91,6 +91,30 @@ def train_http():
 	file = request.files['file']
 	return jsonify(train_network(TMP_UPLOAD_TRAINING, file, clf))
 
+
+@app.route('/tune', methods=['GET'])
+def tune():
+	"""
+	Show the html template for training the neural network
+	"""
+	return render_template("train.html")
+
+
+@app.route('/tune', methods=['POST'])
+def tune_http():
+	"""
+
+	:return:
+	"""
+	# check if the post request has the file part
+	if 'file' not in request.files or request.files['file'].filename == '':
+		flash('No file choosed :/', category="error")
+		return redirect(request.url)  # Return to HTML page [GET]
+	file = request.files['file']
+	return jsonify(tune_network(TMP_UPLOAD_TRAINING, file, clf))
+
+
+# TODO: Create API for init dataset only
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):

@@ -23,7 +23,7 @@
 	"classifier": {
 		"trainin_dir": "dataset/images/",
 		"model_path": "dataset/model/",
-		"model": "model-20190519_125204.clf",
+		"model": "model-20190518_191827.clf",
 		"n_neighbors": "",
 		"knn_algo": ""
 	},

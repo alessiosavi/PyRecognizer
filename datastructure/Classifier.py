@@ -2,19 +2,23 @@
 """
 Core utils for manage face recognition process
 """
-
+import json
 import logging
 import os
 import pickle
 from datetime import datetime
 from math import sqrt
+from multiprocessing.pool import ThreadPool
 from pprint import pformat
 
 import face_recognition
+from sklearn.metrics import accuracy_score, balanced_accuracy_score, classification_report, \
+	precision_score
+from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.neighbors import KNeighborsClassifier
-from tqdm import tqdm
 
 from datastructure.Person import Person
+from utils.util import dump_dataset
 
 log = logging.getLogger()
 
@@ -104,7 +108,9 @@ class Classifier(object):
 			err = "load_classifier_from_file | FATAL | Path {} DOES NOT EXIST ...".format(self.model_path)
 		if err is not None:
 			log.error(err)
-			raise Exception(err)
+			log.error("load_classifier_from_file | Seems that the model is gone :/ | Loading an empty classifier for "
+			          "training purpouse ...")
+			self.classifier = None
 		return
 
 	def train(self, X, Y):
@@ -116,23 +122,103 @@ class Classifier(object):
 		log.debug("train | START")
 		if self.classifier is not None:
 			log.debug("train | Training ...")
-			self.classifier.fit(X, Y)
+			X_train, x_test, Y_train, y_test = train_test_split(X, Y, test_size=0.25)
+			self.classifier.fit(X_train, Y_train)
 			log.debug("train | Model Trained!")
+			log.debug("train | Checking performance ...")
+			y_pred = self.classifier.predict(x_test)
+			# Static method
+			self.verify_performance(y_test, y_pred)
 			return self.dump_model(self.model_path, "model")
 
-	def dump_model(self, path, file):
+	def tuning(self, X, Y):
+		"""
+		Tune the hyperparameter of a new model by the given data [X] related to the given target [Y]
+
+		:param X:
+		:param Y:
+		:return:
+		"""
+		X_train, x_test, Y_train, y_test = train_test_split(X, Y, test_size=0.25)
+		self.classifier = KNeighborsClassifier()
+		# Hyperparameter of the neural network (KKN)
+
+		# n_neighbors_range = list(range(1, round(sqrt(len(X_train)))))  # n_neighbors <= n_samples
+		weights_range = ['uniform', 'distance']
+		metrics_range = ['minkowski', 'euclidean', 'manhattan']
+		# 'auto' will automagically choose an algorithm by the given value
+		algorithm_range = ['ball_tree', 'kd_tree', 'brute']
+		power_range = [1, 2]
+		nn_root = int(round(sqrt(len(X_train))))
+		parameter_space = {
+			# 'n_neighbors': list(range(1,nn_root)),
+			'n_neighbors': [nn_root],
+			'metric': metrics_range,
+			'weights': weights_range,
+			'algorithm': algorithm_range,
+			'p': power_range,
+		}
+		log.debug("tuning | Parameter -> {}".format(pformat(parameter_space)))
+		grid = GridSearchCV(self.classifier, parameter_space, cv=3, scoring='accuracy', verbose=10, n_jobs=3)
+		grid.fit(X_train, Y_train)
+		log.info("TUNING COMPLETE | DUMPING DATA!")
+		# log.info("tuning | Grid Scores: {}".format(pformat(grid.grid_scores_)))
+		log.info('Best parameters found: {}'.format(grid.best_params_))
+
+		y_pred = grid.predict(x_test)
+
+		log.info('Results on the test set: {}'.format(pformat(grid.score(x_test, y_test))))
+
+		self.verify_performance(y_test, y_pred)
+
+		return self.dump_model(params=grid.best_params_)
+
+	@staticmethod
+	def verify_performance(y_test, y_pred):
+		"""
+		Verify the performance of the result analyzing the known-predict result
+		:param y_test:
+		:param y_pred:
+		:return:
+		"""
+
+		log.debug("verify_performance | Analyzing performance ...")
+		# log.info("Computing classifier score --> {}".format(pformat(clf.score(y_test,y_pred))))
+		log.info("Classification Report: {}".format(pformat(classification_report(y_test, y_pred))))
+		log.info("balanced_accuracy_score: {}".format(pformat(balanced_accuracy_score(y_test, y_pred))))
+		log.info("accuracy_score: {}".format(pformat(accuracy_score(y_test, y_pred))))
+		log.info("precision_score: {}".format(pformat(precision_score(y_test, y_pred, average='weighted'))))
+
+	def dump_model(self, params, path=None, file=None):
 		"""
 		Dump the model to the given path, file
+		:param params:
 		:param path:
 		:param file:
 		"""
+		if path is None:
+			if self.model_path is not None:
+				if os.path.exists(self.model_path) and os.path.isdir(self.model_path):
+					path = self.model_path
+		if file is None:
+			file = "model"
+
 		if os.path.isdir(path):
 			time_parsed = datetime.now().strftime('%Y%m%d_%H%M%S')
-			classifier_file = os.path.join(path, "{}-{}.clf".format(file, time_parsed))
+			classifier_file = os.path.join(path, "{}-{}".format(file, time_parsed))
+			config = {'classifier_file': classifier_file,
+			          'params': params
+			          }
+
 			log.debug("dump_model | Dumping model ... | Path: {} | File: {}".format(path, classifier_file))
-			with open(classifier_file, 'wb') as f:
+			# TODO: Save every model in a different folder
+			with open(classifier_file + ".clf", 'wb') as f:
 				pickle.dump(self.classifier, f)
-			return classifier_file
+			with open(classifier_file + ".json", 'w') as f:
+				json.dump(config, f)
+				log.info('dump_model | Configuration saved to {0}'.format(classifier_file))
+
+			return config
 
 	def init_peoples_list(self, peoples_path=None):
 		"""
@@ -144,18 +230,29 @@ class Classifier(object):
 		log.debug("init_peoples_list | Initalizing people ...")
 		if peoples_path is not None and os.path.isdir(peoples_path):
 			self.training_dir = peoples_path
+		# freq_list = pool.map(partial(get_frequency, nlp=nlp_en, client=mongo_client), fileList)
+		pool = ThreadPool(3)
+		self.peoples_list = pool.map(self.init_peoples_list_core, os.listdir(self.training_dir))
+		self.peoples_list = list(filter(None.__ne__, self.peoples_list))  # Remove None
 
-		for people_name in tqdm(os.listdir(self.training_dir),
-		                        total=len(os.listdir(self.training_dir)), desc="Init people list ..."):
-			log.debug("init_peoples_list | Initalizing [{}]".format(people_name))
-			# Filter only folder
-			if os.path.isdir(os.path.join(self.training_dir, people_name)):
-				log.debug("{0}".format(os.path.join(self.training_dir, people_name)))
-				person = Person()
-				person.name = people_name
-				person.path = os.path.join(self.training_dir, people_name)
-				person.init_dataset()
-				self.peoples_list.append(person)
+	# TODO: Add method for dump datastructure in order to don't wait to load same data for test
+
+	def init_peoples_list_core(self, people_name):
+		"""
+		Delegated core method for parallelize operation
+		:param people_name:
+		:return:
+		"""
+		if os.path.isdir(os.path.join(self.training_dir, people_name)):
+			log.debug("Initalizing people {0}".format(os.path.join(self.training_dir, people_name)))
+			person = Person()
+			person.name = people_name
+			person.path = os.path.join(self.training_dir, people_name)
+			person.init_dataset()
+			return person
+		else:
+			log.debug("People {0} invalid folder!".format(os.path.join(self.training_dir, people_name)))
+			return None
 
 	def init_dataset(self):
 		"""
@@ -175,9 +272,10 @@ class Classifier(object):
 				DATASET["X"].append(item)
 			for item in people.dataset["Y"]:
 				DATASET["Y"].append(item)
-
+		dump_dataset(DATASET, self.model_path)
 		return DATASET
 
+	# TODO: Add configuration parameter for choose the distance_threshold
 	def predict(self, X_img_path, distance_threshold=0.45):
 		"""
 		Recognizes faces in given image using a trained KNN classifier
