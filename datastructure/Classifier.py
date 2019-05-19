@@ -178,7 +178,7 @@ class Classifier(object):
 
 		return DATASET
 
-	def predict(self, X_img_path, distance_threshold=0.6):
+	def predict(self, X_img_path, distance_threshold=0.45):
 		"""
 		Recognizes faces in given image using a trained KNN classifier
 

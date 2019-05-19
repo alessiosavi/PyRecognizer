@@ -64,6 +64,6 @@ class Person(object):
 						log.error("initDataset | Found more than one face, too much for me Sir :&")
 			# Loading the Y [target]
 			for i in range(len(self.dataset["X"])):
-				log.debug("Adding name " + self.name)
 				self.dataset["Y"].append(self.name)
+			log.debug("Adding {} entries for {}".format(len(self.dataset["X"]), self.name))
 		return
