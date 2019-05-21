@@ -1,6 +1,6 @@
 {
 	"PyRecognizer": {
-		"Version": "0.0.1",
+		"Version": "0.1.1	",
 		"temp_upload_training": "uploads/training/",
 		"temp_upload_predict": "uploads/predict/",
 		"temp_upload": "uploads/upload"
@@ -23,9 +23,14 @@
 	"classifier": {
 		"trainin_dir": "dataset/images/",
 		"model_path": "dataset/model/",
-		"model": "model-20190518_191827.clf",
-		"n_neighbors": "",
-		"knn_algo": ""
+		"timestamp": "20190521_131449",
+		"params": {
+			"algorithm": "ball_tree",
+			"metric": "minkowski",
+			"n_neighbors": 78,
+			"p": 2,
+			"weights": "distance"
+		}
 	},
 	"data": {
 		"test_data": "/tmp/test_data/"

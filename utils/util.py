@@ -10,7 +10,6 @@ import random
 import shutil
 import string
 import zipfile
-from datetime import datetime
 from logging.handlers import TimedRotatingFileHandler
 
 from PIL import Image, ImageDraw
@@ -132,7 +131,7 @@ def unzip_data(unzipped_folder, zip_file):
 	Unzip the zip file in input in the given 'unzipped_folder'
 	:param unzipped_folder:
 	:param zip_file:
-	:return:
+	:return: The name of the folder in which find the unzipped data
 	"""
 	log = logging.getLogger()
 	folder_name = os.path.join(unzipped_folder, random_string())
@@ -144,23 +143,28 @@ def unzip_data(unzipped_folder, zip_file):
 	return folder_name
 
 
-def dump_dataset(dataset, path, dataset_name=None):
+def dump_dataset(X, Y, path):
 	"""
 
-	:param dataset:
+	:param X:
+	:param Y:
 	:param path:
-	:param dataset_name:
 	:return:
 	"""
 	log = logging.getLogger()
-	log.debug("dump_dataset | Dumping {} {}".format(path, dataset_name))
-	if os.path.exists(path) and os.path.isdir(path):
-		if dataset_name is None:
-			dataset_name = "image_dataset"
-		time_parsed = datetime.now().strftime('%Y%m%d_%H%M%S')
-		dataset_name = os.path.join(path, "{}-{}".format(dataset_name, time_parsed))
-		with open(dataset_name + ".dat", 'wb') as f:
+	dataset = {
+		'X': X,
+		'Y': Y
+	}
+	log.debug("dump_dataset | Dumping dataset int {}".format(path))
+	if not os.path.exists(path):
+		os.makedirs(path)
+		log.debug("dump_dataset | Path {} exist".format(path))
+		dataset_name = os.path.join(path, "model.dat")
+		with open(dataset_name, 'wb') as f:
 			pickle.dump(dataset, f)
+	else:
+		log.error("dump_dataset | Path {} ALREDY EXIST exist".format(path))
 
 
 def remove_dir(directory):
@@ -173,3 +177,49 @@ def remove_dir(directory):
 	log.debug("remove_dir | Removing directory {}".format(directory))
 	if os.path.isdir(directory):
 		shutil.rmtree(directory)
+
+
+def verify_extension(file):
+	"""
+	Wrapper for validate file
+	:param file:
+	:return:
+	"""
+	log = logging.getLogger()
+	extension = os.path.splitext(file)[1]
+	log.debug("verify_extension | File: {} | Ext: {}".format(file, extension))
+	if extension == ".zip":
+		# In this case we have to analyze the photos
+		return "zip"
+	elif extension == ".dat":
+		# Photos have been alredy analyzed, dataset is ready!
+		return "dat"
+	return None
+
+
+def retrieve_dataset(folder_uncompress, zip_file, clf):
+	"""
+
+	:param folder_uncompress:
+	:param zip_file:
+	:param clf:
+	:return:
+	"""
+	log = logging.getLogger()
+	log.debug("retrieve_dataset | Parsing dataset ...")
+	check = verify_extension(zip_file.filename)
+	if check == "zip":  # Image provided
+		log.debug("retrieve_dataset | Zip file uploaded")
+		folder_name = unzip_data(folder_uncompress, zip_file)
+		log.debug("retrieve_dataset | zip file uncompressed!")
+		clf.init_peoples_list(peoples_path=folder_name)
+		dataset = clf.init_dataset()
+		log.debug("retrieve_dataset | Removing [{}]".format(folder_name))
+		remove_dir(folder_name)
+	elif check == "dat":
+		log.debug("retrieve_dataset | Pickle data uploaded")
+		dataset = pickle.load(zip_file)
+	else:
+		dataset = None
+	log.debug("tune_network | Dataset parsed!")
+	return dataset
