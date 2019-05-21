@@ -39,7 +39,7 @@ dashboard.bind(app, SECRET_KEY)
 log.debug("Init classifier ...")
 clf = Classifier()
 clf.model_path = CFG["classifier"]["model_path"]
-clf.load_classifier_from_file(CFG["classifier"]["model"])
+clf.load_classifier_from_file(CFG["classifier"]["timestamp"])
 
 # TODO Add check on extension
 allowed_ext = ["jpg", "jpeg", "png"]
