@@ -42,7 +42,7 @@ class Person(object):
 		if self.path != "" and isdir(self.path):
 			log.debug("initDataset | Paramater provided, iterating images ..")
 			# Iterating the images in parallel
-			pool = ThreadPool(1)
+			pool = ThreadPool(2)
 			self.dataset["X"] = pool.map(self.init_dataset_core, image_files_in_folder(self.path))
 			self.dataset["X"] = list(filter(None.__ne__, self.dataset["X"]))  # Remove None
 			# Loading the Y [target]
