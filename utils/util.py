@@ -1,6 +1,15 @@
 # -*- coding: utf-8 -*-
 """
 Common method for reuse code
+
+Generate certificate
+
+openssl req -x509 -out localhost.crt -keyout localhost.key \
+  -newkey rsa:2048 -nodes -sha256 \
+  -subj '/CN=localhost' -extensions EXT -config <( \
+   printf "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
+
+
 """
 import json
 import logging
@@ -223,3 +232,16 @@ def retrieve_dataset(folder_uncompress, zip_file, clf):
 		dataset = None
 	log.debug("tune_network | Dataset parsed!")
 	return dataset
+
+
+def secure_request(request):
+	"""
+
+	:param request:
+	:return:
+	"""
+	request.headers['Content-Security-Policy'] = "default-src 'self'"
+	request.headers['X-Content-Type-Options'] = 'nosniff'
+	request.headers['X-Content-Type-Options'] = 'nosniff'
+	request.headers['X-XSS-Protection'] = '1; mode=block'
+	return request
