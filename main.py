@@ -6,12 +6,13 @@ import base64
 import os
 
 import flask_monitoringdashboard as dashboard
-from flask import Flask, flash, jsonify, render_template, request, send_from_directory
+from flask import Flask, flash, jsonify, render_template, request, send_from_directory, session
+from werkzeug.exceptions import abort
 from werkzeug.utils import redirect, secure_filename
 
 from api.Api import predict_image, train_network, tune_network
 from datastructure.Classifier import Classifier
-from utils.util import init_main_data
+from utils.util import init_main_data, random_string, secure_request
 
 # ===== LOAD CONFIGURATION FILE =====
 # TODO: Add argument parser for manage configuration file
@@ -37,6 +38,10 @@ dashboard.bind(app, SECRET_KEY)
 # ===== CLASSIFIER CONFIGURATION =====
 
 log.debug("Init classifier ...")
+
+PUB_KEY = CFG["network"]["SSL"]["cert.pub"]
+PRIV_KEY = CFG["network"]["SSL"]["cert.priv"]
+
 clf = Classifier()
 clf.model_path = CFG["classifier"]["model_path"]
 clf.load_classifier_from_file(CFG["classifier"]["timestamp"])
@@ -126,5 +131,41 @@ def uploaded_file(filename):
 	return send_from_directory(TMP_UPLOAD_PREDICTION, filename)
 
 
+@app.before_request
+def csrf_protect():
+	"""
+
+	:return:
+	"""
+	if "dashboard" not in str(request.url_rule):
+		if request.method == "POST":
+			token = session.pop('_csrf_token', None)
+			if not token or token != request.form.get('_csrf_token'):
+				abort(403)
+
+
+#	secure_request(request)
+
+
+def generate_csrf_token():
+	"""
+
+	:return:
+	"""
+	if '_csrf_token' not in session:
+		session['_csrf_token'] = random_string()
+	return session['_csrf_token']
+
+
+
+app.jinja_env.globals['csrf_token'] = generate_csrf_token
+
 if __name__ == '__main__':
-	app.run(host=CFG["network"]["host"], port=CFG["network"]["port"], threaded=True, debug=True)
+	app.jinja_env.autoescape = True
+	if CFG["network"]["SSL"]["enabled"] is True:
+		log.debug("main | RUNNING OVER SSL")
+		app.run(host=CFG["network"]["host"], port=CFG["network"]["port"], threaded=False, debug=True, ssl_context=(
+			PUB_KEY, PRIV_KEY))
+	else:
+		log.debug("main | HTTPS DISABLED | RUNNING OVER HTTP")
+		app.run(host=CFG["network"]["host"], port=CFG["network"]["port"], threaded=False, debug=True)
