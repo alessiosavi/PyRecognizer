@@ -3,7 +3,6 @@
 Common structure for define how to manage a person
 """
 from logging import getLogger
-from multiprocessing.pool import ThreadPool
 from os.path import isdir
 
 from face_recognition import face_encodings, face_locations, load_image_file
@@ -42,8 +41,10 @@ class Person(object):
 		if self.path != "" and isdir(self.path):
 			log.debug("initDataset | Paramater provided, iterating images ..")
 			# Iterating the images in parallel
-			pool = ThreadPool(1)
-			self.dataset["X"] = pool.map(self.init_dataset_core, image_files_in_folder(self.path))
+			# pool = ThreadPool(2)
+			# self.dataset["X"] = pool.map(self.init_dataset_core, image_files_in_folder(self.path))
+			for image_path in image_files_in_folder(self.path):
+				self.dataset["X"].append(self.init_dataset_core(image_path))
 			self.dataset["X"] = list(filter(None.__ne__, self.dataset["X"]))  # Remove None
 			# Loading the Y [target]
 			for i in range(len(self.dataset["X"])):
@@ -65,12 +66,12 @@ class Person(object):
 			return None
 		# log.debug("initDataset | Image loaded! | Searching for face ...")
 		# Array of w,x,y,z coordinates
-		face_bounding_boxes = face_locations(image)
+		face_bounding_boxes = face_locations(image, model="hog")
 		face_data = None
 		if len(face_bounding_boxes) == 1:
-			log.info("initDataset | Seems that {0} is valid, loading for future training ...".format(img_path))
+			log.info("initDataset | Image {0} have only 1 face, loading for future training ...".format(img_path))
 			# Loading the X [data]
-			face_data = face_encodings(image, known_face_locations=face_bounding_boxes)[0]
+			face_data = face_encodings(image, known_face_locations=face_bounding_boxes, num_jitters=1)[0]
 		else:
 			log.error("initDataset | Image {0} not suitable for training!".format(img_path))
 			if len(face_bounding_boxes) == 0:

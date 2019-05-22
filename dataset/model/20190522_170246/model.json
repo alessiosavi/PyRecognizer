@@ -1,9 +1,9 @@
 {
-	"classifier_file": "dataset/model/model-20190519_210950",
+	"classifier_file": "20190522_170246/model.clf",
 	"params": {
 		"algorithm": "ball_tree",
 		"metric": "minkowski",
-		"n_neighbors": 78,
+		"n_neighbors": 80,
 		"p": 2,
 		"weights": "distance"
 	}
