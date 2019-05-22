@@ -8,9 +8,6 @@ import os
 import pickle
 import time
 from math import sqrt
-from tqdm import tqdm
-
-
 from pprint import pformat
 
 import face_recognition
@@ -18,6 +15,7 @@ from sklearn.metrics import accuracy_score, balanced_accuracy_score, classificat
 	precision_score
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.neighbors import KNeighborsClassifier
+from tqdm import tqdm
 
 from datastructure.Person import Person
 from utils.util import dump_dataset
@@ -109,7 +107,7 @@ class Classifier(object):
 			filename = os.path.join(self.model_path, timestamp, "model.clf")
 			log.debug("load_classifier_from_file | Loading classifier from file: {}".format(filename))
 			if os.path.isfile(filename):
-				log.debug("load_classifier_from_file | File {} exist ...".format(filename))
+				log.debug("load_classifier_from_file | File {} exist!".format(filename))
 				with open(filename, 'rb') as f:
 					self.classifier = pickle.load(f)
 				log.debug("load_classifier_from_file | Classifier loaded!")
@@ -182,7 +180,7 @@ class Classifier(object):
 			'p': power_range,
 		}
 		log.debug("tuning | Parameter -> {}".format(pformat(parameter_space)))
-		grid = GridSearchCV(self.classifier, parameter_space, cv=3, scoring='accuracy', verbose=10, n_jobs=1)
+		grid = GridSearchCV(self.classifier, parameter_space, cv=3, scoring='accuracy', verbose=20, n_jobs=2)
 		grid.fit(X_train, Y_train)
 		log.info("TUNING COMPLETE | DUMPING DATA!")
 		# log.info("tuning | Grid Scores: {}".format(pformat(grid.grid_scores_)))
@@ -231,21 +229,21 @@ class Classifier(object):
 		          }
 		if not os.path.isdir(path):
 			os.makedirs(timestamp)
-			classifier_folder = os.path.join(path, timestamp)
-			classifier_file = os.path.join(classifier_folder, "model")
+		classifier_folder = os.path.join(path, timestamp)
+		classifier_file = os.path.join(classifier_folder, "model")
 
-			log.debug("dump_model | Dumping model ... | Path: {} | File: {}".format(path, classifier_file))
-			# TODO: Save every model in a different folder
-			if not os.path.exists(classifier_folder):
-				os.makedirs(classifier_folder)
+		log.debug("dump_model | Dumping model ... | Path: {} | Model folder: {}".format(path, timestamp))
+		# TODO: Save every model in a different folder
+		if not os.path.exists(classifier_folder):
+			os.makedirs(classifier_folder)
 
-			with open(classifier_file + ".clf", 'wb') as f:
-				pickle.dump(classifier, f)
+		with open(classifier_file + ".clf", 'wb') as f:
+			pickle.dump(classifier, f)
+			log.info('dump_model | Model saved to {0}.clf'.format(classifier_file))
 
-
-			with open(classifier_file + ".json", 'w') as f:
-				json.dump(config, f)
-				log.info('dump_model | Configuration saved to {0}'.format(classifier_file))
+		with open(classifier_file + ".json", 'w') as f:
+			json.dump(config, f)
+			log.info('dump_model | Configuration saved to {0}.json'.format(classifier_file))
 
 		return config
 
@@ -259,16 +257,14 @@ class Classifier(object):
 		log.debug("init_peoples_list | Initalizing people ...")
 		if peoples_path is not None and os.path.isdir(peoples_path):
 			self.training_dir = peoples_path
-		#pool = ThreadPool(3)
-		#self.peoples_list = pool.map(self.init_peoples_list_core, os.listdir(self.training_dir))
+		# pool = ThreadPool(3)
+		# self.peoples_list = pool.map(self.init_peoples_list_core, os.listdir(self.training_dir))
 
 		for people_name in tqdm(os.listdir(self.training_dir),
 		                        total=len(os.listdir(self.training_dir)), desc="Init people list ..."):
 			self.peoples_list.append(self.init_peoples_list_core(people_name))
 
 		self.peoples_list = list(filter(None.__ne__, self.peoples_list))  # Remove None
-
-
 
 	# TODO: Add method for dump datastructure in order to don't wait to load same data for test
 
@@ -310,7 +306,7 @@ class Classifier(object):
 		return DATASET
 
 	# TODO: Add configuration parameter for choose the distance_threshold
-	def predict(self, X_img_path, distance_threshold=0.45):
+	def predict(self, X_img_path, distance_threshold=0.54):
 		"""
 		Recognizes faces in given image using a trained KNN classifier
 
@@ -332,29 +328,33 @@ class Classifier(object):
 		except OSError:
 			log.error("predict | What have you uploaded ???")
 			return -2
+		# TODO: Manage multiple faces
+		log.debug("predict | Extracting faces locations ...")
 		X_face_locations = face_recognition.face_locations(X_img)
+		log.debug("predict | Found {} face(s) for the given image".format(len(X_face_locations)))
 
 		# If no faces are found in the image, or more than one face are found, return an empty result.
-		if len(X_face_locations) != 1:
+		if len(X_face_locations) == 0:
+			log.warning("predict | Seems that no faces was found :( ")
 			return []
+		log.debug("predict | Found more than one face, encoding the faces ...")
 
 		# Find encodings for faces in the test iamge
 		faces_encodings = face_recognition.face_encodings(X_img, known_face_locations=X_face_locations)
-
+		log.debug("predict | Face encoded! Let's ask to the neural network ...")
 		# Use the KNN model to find the best matches for the test face
-		closest_distances = self.classifier.kneighbors(faces_encodings, n_neighbors=1)
+		closest_distances = self.classifier.kneighbors(faces_encodings)
 		log.debug("predict | Closest distances: {}".format(closest_distances))
-		are_matches = [closest_distances[0][i][0] <= distance_threshold for i in range(len(X_face_locations))]
-		log.debug("predict | are_matches: {}".format(are_matches))
+		min_distance = min(closest_distances[0][0])
+		log.debug("predict | Min: {}".format(min_distance))
+		predictions = []
+		if min_distance < distance_threshold:
+			for pred, loc in zip(self.classifier.predict(faces_encodings), X_face_locations):
+				log.debug("predict_folder | Pred: {} | Loc: {}".format(pred, loc))
+				predictions.append((pred, loc))
+			log.debug("predict_folder | Prediction: {}".format(predictions))
+		else:
+			log.debug("predict | Face not recognized :/")
+			predictions = -1
 
-		prediction = []
-		for pred, loc, rec in zip(self.classifier.predict(faces_encodings), X_face_locations, are_matches):
-			log.debug("predict_folder | Pred: {} | Loc: {} | Rec: {}".format(pred, loc, rec))
-			if rec:  # Face recognized !
-				prediction.append((pred, loc))
-			else:
-				log.debug("predict | Face {} not recognized :/".format(pred))
-				prediction = -1
-		log.debug("predict_folder | Prediction: {}".format(prediction))
-
-		return prediction
+		return {"predictions": predictions, "score": min_distance}
