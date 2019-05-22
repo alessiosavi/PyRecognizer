@@ -1,6 +1,6 @@
 {
 	"PyRecognizer": {
-		"Version": "0.1.1	",
+		"Version": "0.1.2",
 		"temp_upload_training": "uploads/training/",
 		"temp_upload_predict": "uploads/predict/",
 		"temp_upload": "uploads/upload"
@@ -11,23 +11,23 @@
 		"level": "debug"
 	},
 	"network": {
-		"host": "locahost",
+		"host": "0.0.0.0",
 		"port": 11001,
 		"templates": "api/templates/",
 		"SSL": {
-			"enabled": false,
-			"cert.pub": "/dev/null",
-			"cert.priv": "/dev/null"
+			"enabled": true,
+			"cert.pub": "conf/ssl/localhost.crt",
+			"cert.priv": "conf/ssl/localhost.key"
 		}
 	},
 	"classifier": {
 		"trainin_dir": "dataset/images/",
 		"model_path": "dataset/model/",
-		"timestamp": "20190521_131449",
+		"timestamp": "20190522_170246",
 		"params": {
 			"algorithm": "ball_tree",
 			"metric": "minkowski",
-			"n_neighbors": 78,
+			"n_neighbors": 80,
 			"p": 2,
 			"weights": "distance"
 		}

@@ -27,16 +27,17 @@ def predict_image(img_path, clf, PREDICTION_PATH):
 		prediction = None
 	else:
 		log.debug("predict_image | Predicting {}".format(img_path))
-		prediction = clf.predict(img_path, distance_threshold=0.45)
+		prediction = clf.predict(img_path)
+		log.debug("predict_image | Result: {}".format(prediction))
 	# Manage success
-	if prediction is not None and isinstance(prediction, list) and len(prediction) == 1:
+	if prediction and isinstance(prediction["predictions"], list):
 		img_name = random_string() + ".png"
-		log.debug("predict_image | Generated a random name: {}".format(img_path))
+		log.debug("predict_image | Generated a random name: {}".format(img_name))
 		log.debug("predict_image | Visualizing face recognition ...")
-		print_prediction_on_image(img_path, prediction, PREDICTION_PATH, img_name)
-		response.status = "OK"
-		response.description = img_name
-		response.data = prediction[0][0]
+		print_prediction_on_image(img_path, prediction["predictions"], PREDICTION_PATH, img_name)
+		return Response(status="OK", description=img_name, data={"name": prediction["predictions"][0][0],
+		                                                         "distance": prediction[
+			                                                         "score"]}).__dict__
 
 	# Manage error
 	elif prediction is None:
@@ -59,7 +60,7 @@ def predict_image(img_path, clf, PREDICTION_PATH):
 		# TODO: Add custom algorithm that "try to understand" who has never been recognized
 		response.error = "FACE_NOT_RECOGNIZED"
 		response.description = "Seems that this face is related to nobody that i've seen before ..."
-		log.error("predict_image | Seems that this face is lated to nobody that i've seen before ...")
+		log.error("predict_image | Seems that this face is related to nobody that i've seen before ...")
 
 	elif prediction == -2:
 		response.error = "FILE_NOT_VALID"
