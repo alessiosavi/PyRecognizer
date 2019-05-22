@@ -12,9 +12,9 @@ class Response(object):
 	external tools
 	"""
 
-	def __init__(self):
-		self.status = "KO"
-		self.description = None
-		self.error = None
-		self.data = None
+	def __init__(self, status="KO", description=None, error=None, data=None):
+		self.status = status
+		self.description = description
+		self.error = error
+		self.data = data
 		self.date = str(datetime.now())
