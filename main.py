@@ -15,7 +15,7 @@ from datastructure.Classifier import Classifier
 from utils.util import init_main_data, random_string, secure_request
 
 # ===== LOAD CONFIGURATION FILE =====
-# TODO: Add argument parser for manage configuration file
+# TODO: Add argument/environment var parser for manage configuration file
 CONFIG_FILE = "conf/test.json"
 
 CFG, log, TMP_UPLOAD_PREDICTION, TMP_UPLOAD_TRAINING, TMP_UPLOAD = init_main_data(CONFIG_FILE)
@@ -45,9 +45,6 @@ PRIV_KEY = CFG["network"]["SSL"]["cert.priv"]
 clf = Classifier()
 clf.model_path = CFG["classifier"]["model_path"]
 clf.load_classifier_from_file(CFG["classifier"]["timestamp"])
-
-# TODO Add check on extension
-allowed_ext = ["jpg", "jpeg", "png"]
 
 
 @app.route('/', methods=['GET'])
@@ -119,12 +116,10 @@ def tune_http():
 	return jsonify(tune_network(TMP_UPLOAD_TRAINING, file, clf))
 
 
-# TODO: Create API for init dataset only
-
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
 	"""
-	Expose images only to the one that know the image name
+	Expose images only to the one that know the image name in a secure method
 	:param filename:
 	:return:
 	"""
@@ -134,7 +129,7 @@ def uploaded_file(filename):
 @app.before_request
 def csrf_protect():
 	"""
-
+	Validate csrf token against the one in session
 	:return:
 	"""
 	if "dashboard" not in str(request.url_rule):
@@ -144,18 +139,23 @@ def csrf_protect():
 				abort(403)
 
 
-#	secure_request(request)
+@app.after_request
+def secure_headers(response):
+	"""
+	Apply securiy headers to the response call
+	:return:
+	"""
+	return secure_request(response)
 
 
 def generate_csrf_token():
 	"""
-
+	Generate a randome string and set the data into session
 	:return:
 	"""
 	if '_csrf_token' not in session:
 		session['_csrf_token'] = random_string()
 	return session['_csrf_token']
-
 
 
 app.jinja_env.globals['csrf_token'] = generate_csrf_token

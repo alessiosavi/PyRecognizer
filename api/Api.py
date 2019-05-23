@@ -35,9 +35,7 @@ def predict_image(img_path, clf, PREDICTION_PATH):
 		log.debug("predict_image | Generated a random name: {}".format(img_name))
 		log.debug("predict_image | Visualizing face recognition ...")
 		print_prediction_on_image(img_path, prediction["predictions"], PREDICTION_PATH, img_name)
-		return Response(status="OK", description=img_name, data={"name": prediction["predictions"][0][0],
-		                                                         "distance": prediction[
-			                                                         "score"]}).__dict__
+		return Response(status="OK", description=img_name, data=prediction).__dict__
 
 	# Manage error
 	elif prediction is None:
