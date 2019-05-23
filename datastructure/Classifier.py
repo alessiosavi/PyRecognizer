@@ -172,7 +172,6 @@ class Classifier(object):
 		power_range = [1, 2]
 		nn_root = int(round(sqrt(len(X_train))))
 		parameter_space = {
-			# 'n_neighbors': list(range(1,nn_root)),
 			'n_neighbors': [nn_root],
 			'metric': metrics_range,
 			'weights': weights_range,
@@ -233,7 +232,6 @@ class Classifier(object):
 		classifier_file = os.path.join(classifier_folder, "model")
 
 		log.debug("dump_model | Dumping model ... | Path: {} | Model folder: {}".format(path, timestamp))
-		# TODO: Save every model in a different folder
 		if not os.path.exists(classifier_folder):
 			os.makedirs(classifier_folder)
 
@@ -265,8 +263,6 @@ class Classifier(object):
 			self.peoples_list.append(self.init_peoples_list_core(people_name))
 
 		self.peoples_list = list(filter(None.__ne__, self.peoples_list))  # Remove None
-
-	# TODO: Add method for dump datastructure in order to don't wait to load same data for test
 
 	def init_peoples_list_core(self, people_name):
 		"""
@@ -318,11 +314,12 @@ class Classifier(object):
 		"""
 
 		if self.classifier is None:
-			log.error("predict | Be sure that you have loaded/trained a nerual model")
+			log.error("predict | Be sure that you have loaded/trained the nerual network model")
 			return None
 
-		# Load image file and find face locations
+		# Load image data in a numpy array
 		try:
+			log.debug("predict | Loading image {}".format(X_img_path))
 			# TODO: Necessary cause at this point we are not sure what file type is this ...
 			X_img = face_recognition.load_image_file(X_img_path)
 		except OSError:
@@ -337,24 +334,32 @@ class Classifier(object):
 		if len(X_face_locations) == 0:
 			log.warning("predict | Seems that no faces was found :( ")
 			return []
-		log.debug("predict | Found more than one face, encoding the faces ...")
 
 		# Find encodings for faces in the test iamge
-		faces_encodings = face_recognition.face_encodings(X_img, known_face_locations=X_face_locations)
-		log.debug("predict | Face encoded! Let's ask to the neural network ...")
+		log.debug("predict | Encoding faces ...")
+		faces_encodings = face_recognition.face_encodings(X_img, known_face_locations=X_face_locations, num_jitters=2)
+		log.debug("predict | Face encoded! | Let's ask to the neural network ...")
 		# Use the KNN model to find the best matches for the test face
 		closest_distances = self.classifier.kneighbors(faces_encodings)
-		log.debug("predict | Closest distances: {}".format(closest_distances))
-		min_distance = min(closest_distances[0][0])
-		log.debug("predict | Min: {}".format(min_distance))
+		log.debug("predict | Closest distances: [{}]".format(len(closest_distances)))
+		# At least we need to recognize 1 face
+		scores = []
+		for i in range(len(closest_distances[0])):
+			scores.append(min(closest_distances[0][i]))
+			log.debug("predict | *****MIN****| {}".format(min(closest_distances[0][i])))
+
+
 		predictions = []
-		if min_distance < distance_threshold:
-			for pred, loc in zip(self.classifier.predict(faces_encodings), X_face_locations):
-				log.debug("predict_folder | Pred: {} | Loc: {}".format(pred, loc))
-				predictions.append((pred, loc))
-			log.debug("predict_folder | Prediction: {}".format(predictions))
+		if len(scores) > 0:
+			for pred, loc, score in zip(self.classifier.predict(faces_encodings), X_face_locations, scores):
+				if score <= distance_threshold:
+					log.debug("predict | Pred: {} | Loc: {} | Score: {}".format(pred, loc, score))
+					predictions.append((pred, loc))
+				else:
+					log.warning("predict | Person {} does not outbounds treshold {}>{}".format(pred,score,distance_threshold))
+			log.debug("predict | Prediction: {}".format(predictions))
 		else:
 			log.debug("predict | Face not recognized :/")
 			predictions = -1
 
-		return {"predictions": predictions, "score": min_distance}
+		return {"predictions": predictions, "scores": scores}
