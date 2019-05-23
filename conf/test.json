@@ -1,6 +1,6 @@
 {
 	"PyRecognizer": {
-		"Version": "0.1.2",
+		"Version": "0.1.3",
 		"temp_upload_training": "uploads/training/",
 		"temp_upload_predict": "uploads/predict/",
 		"temp_upload": "uploads/upload"

@@ -76,7 +76,6 @@ def init_main_data(config_file):
 
 	log = load_logger(CFG["logging"]["level"], CFG["logging"]["path"], CFG["logging"]["prefix"])
 
-	# TODO: Verify the presence -> create directory
 	# NOTE: create a directory every time that you need to use this folder
 	TMP_UPLOAD_PREDICTION = CFG["PyRecognizer"]["temp_upload_predict"]
 	TMP_UPLOAD_TRAINING = CFG["PyRecognizer"]["temp_upload_training"]
@@ -121,7 +120,10 @@ def random_string(string_length=10):
 	:return:
 	"""
 	letters = string.ascii_lowercase
-	return ''.join(random.choice(letters) for i in range(string_length))
+	data = ""
+	for character in range(string_length):
+		data += random.choice(letters)
+	return data
 
 
 def zip_data(file_to_zip, path):
@@ -241,7 +243,11 @@ def secure_request(request):
 	:return:
 	"""
 	request.headers['Content-Security-Policy'] = "default-src 'self'"
+	request.headers['Feature-Policy'] = "geolocation 'none'; microphone 'none'; camera 'self'"
+	request.headers['Referrer-Policy'] = 'no-referrer'
+	request.headers['Strict-Transport-Security'] = "max-age=31536000; includeSubDomains"
 	request.headers['X-Content-Type-Options'] = 'nosniff'
-	request.headers['X-Content-Type-Options'] = 'nosniff'
+	request.headers['X-Permitted-Cross-Domain-Policies'] = 'none'
 	request.headers['X-XSS-Protection'] = '1; mode=block'
+
 	return request
