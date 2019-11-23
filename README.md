@@ -4,7 +4,7 @@ A simple face recognition engine
 
 ## Introduction
 
-This project is developed for have a plug-and-play facial recognition tool able to detect and recognize multiple faces from photos. It aim to be interoperable with other tool. For this purpouse, it expose REST api in order to interact with the facial recognition engine (train/tune/predict).
+This project is developed for have a plug-and-play facial recognition tool able to detect and recognize multiple faces from photos. It aim to be inter operable with other tool. For this purpose, it expose REST api in order to interact with the facial recognition engine (train/tune/predict).
 
 It's written for be a basecode/project structure for future project where a more complicated facial detect + neural network have to be engaged.
 Currently it use a KNN in order to predict the given faces.
@@ -29,7 +29,7 @@ Currently it use a KNN in order to predict the given faces.
   - [Prerequisites](#prerequisites)
   - [Usage](#usage)
   - [In Details](#in-details)
-  - [Example repsonse](#example-repsonse)
+  - [Example response](#example-response)
   - [Contributing](#contributing)
   - [Versioning](#versioning)
   - [Authors](#authors)
@@ -40,12 +40,12 @@ Currently it use a KNN in order to predict the given faces.
 
 The software is coded in `Python`, into the `requirements.txt` file are saved the necessary dependencies.
 
-Create a virtual enviroinment with you favorite `python` package manager
+Create a virtual environment with you favorite `python` package manager
 
 ```bash
-# Create a new enviroinment
+# Create a new environment
 conda create -n PyRecognizer python=3.7.4
-# Activate the enviroinment
+# Activate the environment
 conda activate PyRecognizer
 # Install the necessary dependencies
 pip install -r requirements.txt
@@ -81,7 +81,7 @@ Each directory, contains the photos related to the "target".
 
 At this point the dataset is complete and you can continue with training/tuning.
 
-Backup and remove the alredy present model (if present,inside the `dataset/model` directory), the tool will understand that you want to train the model and will initialize a new KNN model. The model have the following template: `%Y%m%d_%H%M%S`, related to the time that was generated.
+Backup and remove the already present model (if present,inside the `dataset/model` directory), the tool will understand that you want to train the model and will initialize a new KNN model. The model have the following template: `%Y%m%d_%H%M%S`, related to the time that was generated.
 
 Open your browser at the `endpoint:port/train` specified in the configuration file (`conf/test.json`).  
 **NOTE:** you can switch on/off the SSL, be sure to add `https` before the endpoint ip/hostname if it is enabled.
@@ -90,9 +90,9 @@ At this point you can upload the dataset (the previous `zip` file) and wait for 
 
 You can tail the log in `log/pyrecognizer.log` in order to understand the status of the training.
 
-Once completed, the browser page will be refreshed automatically and you can predict a new photos that the nerual network haven't seen before.
+Once completed, the browser page will be refreshed automatically and you can predict a new photos that the neural network haven't seen before.
 
-**NOTE:** The same procedure can be applied for `tune` the neural network. By this way, you are going to execute an exhaustive search over specified parameter values for the KNN classifier. And, obviusly, is more time consuming and the nerual network produced will be more precise. The endoint is `/tune` instead of `/train`
+**NOTE:** The same procedure can be applied for `tune` the neural network. By this way, you are going to execute an exhaustive search over specified parameter values for the KNN classifier. And, obviously, is more time consuming and the neural network produced will be more precise. The endpoint is `/tune` instead of `/train`
 
 After `train/tune` phase, you have to modify the configuration file in order to use the new model. The model is saved in a new folder with the related timestamp (modify classifier -> timestamp in the configuration file)
 
@@ -141,7 +141,7 @@ tree
     └── util.py
 ```
 
-## Example repsonse
+## Example response
 
 - **Unable to detect a face**
   
@@ -221,4 +221,4 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ## Acknowledgments
 
-Face data are sensible information. In order to mitigate the risk of stealing sensible data, the tool can run in SSL mode for avoid packet sniffing and secure every request using a CSRF mitigator
+Face data are sensible information. In order to mitigate the risk of stealing sensible data, the tool can run in SSL mode for avoid packet sniffing and secure every request using a CSRF mitigation
