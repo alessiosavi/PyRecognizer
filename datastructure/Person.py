@@ -70,8 +70,8 @@ class Person(object):
 		face_data = None
 		if len(face_bounding_boxes) == 1:
 			log.info("initDataset | Image {0} have only 1 face, loading for future training ...".format(img_path))
-			# Loading the X [data]
-			face_data = face_encodings(image, known_face_locations=face_bounding_boxes, num_jitters=1)[0]
+			# Loading the X [data] using 300 times distortion
+			face_data = face_encodings(image, known_face_locations=face_bounding_boxes, num_jitters=300)[0]
 		else:
 			log.error("initDataset | Image {0} not suitable for training!".format(img_path))
 			if len(face_bounding_boxes) == 0:
