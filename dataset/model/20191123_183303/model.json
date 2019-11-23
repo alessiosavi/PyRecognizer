@@ -1,0 +1,1 @@
+{"classifier_file": "20191123_183303/model.clf", "params": {"algorithm": "ball_tree", "metric": "minkowski", "n_neighbors": 18, "p": 1, "weights": "distance"}}
