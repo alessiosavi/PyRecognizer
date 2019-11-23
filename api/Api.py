@@ -85,11 +85,10 @@ def train_network(folder_uncompress, zip_file, clf):
 
 	else:
 		timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-		neural_model_file, elapsed_time = clf.train(dataset["X"], dataset["Y"], timestamp)
+		neural_model_file, _ = clf.train(dataset["X"], dataset["Y"], timestamp)
 
 		response = Response(status="OK", data=neural_model_file)
-		response.description = "Model succesfully trained! | {}".format(
-			time.strftime("%H:%M:%S.%f", time.gmtime(elapsed_time)))
+		response.description = "Model succesfully trained!"
 		log.debug("train_network | Tuning phase finihsed! | {}".format(response.description))
 
 		return response.__dict__
