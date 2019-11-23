@@ -54,7 +54,7 @@ def print_prediction_on_image(img_path, predictions, path_to_save, file_to_save)
 		name = name.encode("UTF-8")
 
 		# Draw a label with a name below the face
-		text_width, text_height = draw.textsize(name)
+		_, text_height = draw.textsize(name)
 		draw.rectangle(((left, bottom - text_height - 10), (right, bottom)), fill=(0, 0, 255), outline=(0, 0, 255))
 		draw.text((left + 6, bottom - text_height - 5), name, fill=(255, 255, 255, 255))
 	# Remove the drawing library from memory as per the Pillow docs
@@ -87,7 +87,6 @@ def init_main_data(config_file):
 		os.makedirs(TMP_UPLOAD_TRAINING)
 	if not os.path.exists(TMP_UPLOAD):
 		os.makedirs(TMP_UPLOAD)
-	
 
 	return CFG, log, TMP_UPLOAD_PREDICTION, TMP_UPLOAD_TRAINING, TMP_UPLOAD
 
@@ -124,7 +123,7 @@ def random_string(string_length=10):
 	"""
 	letters = string.ascii_lowercase
 	data = ""
-	for character in range(string_length):
+	for _ in range(string_length):
 		data += random.choice(letters)
 	return data
 
