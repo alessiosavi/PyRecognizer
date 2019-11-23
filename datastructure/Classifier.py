@@ -302,7 +302,7 @@ class Classifier(object):
 		return DATASET
 
 	# TODO: Add configuration parameter for choose the distance_threshold
-	def predict(self, X_img_path, distance_threshold=0.54):
+	def predict(self, X_img_path, distance_threshold=0.56):
 		"""
 		Recognizes faces in given image using a trained KNN classifier
 
@@ -352,11 +352,12 @@ class Classifier(object):
 		predictions = []
 		if len(scores) > 0:
 			for pred, loc, score in zip(self.classifier.predict(faces_encodings), X_face_locations, scores):
-				if score <= distance_threshold:
+				if distance_threshold > score :
+					log.warning("predict | Person {} does not outbounds treshold {}>{}".format(pred,score,distance_threshold))
+					predictions = []
+				else:
 					log.debug("predict | Pred: {} | Loc: {} | Score: {}".format(pred, loc, score))
 					predictions.append((pred, loc))
-				else:
-					log.warning("predict | Person {} does not outbounds treshold {}>{}".format(pred,score,distance_threshold))
 			log.debug("predict | Prediction: {}".format(predictions))
 		else:
 			log.debug("predict | Face not recognized :/")
