@@ -118,7 +118,7 @@ class Classifier(object):
 		if err is not None:
 			log.error(err)
 			log.error("load_classifier_from_file | Seems that the model is gone :/ | Loading an empty classifier for "
-			          "training purpouse ...")
+					  "training purpouse ...")
 			self.classifier = None
 		return
 
@@ -192,7 +192,7 @@ class Classifier(object):
 		self.verify_performance(y_test, y_pred)
 
 		return self.dump_model(timestamp=timestamp, params=grid.best_params_,
-		                       classifier=grid.best_estimator_), time.time() - start_time
+							   classifier=grid.best_estimator_), time.time() - start_time
 
 	@staticmethod
 	def verify_performance(y_test, y_pred):
@@ -224,8 +224,8 @@ class Classifier(object):
 				if os.path.exists(self.model_path) and os.path.isdir(self.model_path):
 					path = self.model_path
 		config = {'classifier_file': os.path.join(timestamp, "model.clf"),
-		          'params': params
-		          }
+				  'params': params
+				  }
 		if not os.path.isdir(path):
 			os.makedirs(timestamp)
 		classifier_folder = os.path.join(path, timestamp)
@@ -259,7 +259,7 @@ class Classifier(object):
 		# self.peoples_list = pool.map(self.init_peoples_list_core, os.listdir(self.training_dir))
 
 		for people_name in tqdm(os.listdir(self.training_dir),
-		                        total=len(os.listdir(self.training_dir)), desc="Init people list ..."):
+								total=len(os.listdir(self.training_dir)), desc="Init people list ..."):
 			self.peoples_list.append(self.init_peoples_list_core(people_name))
 
 		self.peoples_list = list(filter(None.__ne__, self.peoples_list))  # Remove None
@@ -302,7 +302,7 @@ class Classifier(object):
 		return DATASET
 
 	# TODO: Add configuration parameter for choose the distance_threshold
-	def predict(self, X_img_path, distance_threshold=0.56):
+	def predict(self, X_img_path, distance_threshold=0.65):
 		"""
 		Recognizes faces in given image using a trained KNN classifier
 
@@ -327,17 +327,18 @@ class Classifier(object):
 			return -2
 		# TODO: Manage multiple faces
 		log.debug("predict | Extracting faces locations ...")
-		X_face_locations = face_recognition.face_locations(X_img)
+		X_face_locations = face_recognition.face_locations(X_img, model="cnn")
 		log.debug("predict | Found {} face(s) for the given image".format(len(X_face_locations)))
 
-		# If no faces are found in the image, or more than one face are found, return an empty result.
+		# If no faces are found in the image, return an empty result.
 		if len(X_face_locations) == 0:
 			log.warning("predict | Seems that no faces was found :( ")
-			return []
+			return -3
 
 		# Find encodings for faces in the test iamge
 		log.debug("predict | Encoding faces ...")
-		faces_encodings = face_recognition.face_encodings(X_img, known_face_locations=X_face_locations, num_jitters=2)
+		# num_jitters increase the distortion check
+		faces_encodings = face_recognition.face_encodings(X_img, known_face_locations=X_face_locations, num_jitters=200)
 		log.debug("predict | Face encoded! | Let's ask to the neural network ...")
 		# Use the KNN model to find the best matches for the test face
 		closest_distances = self.classifier.kneighbors(faces_encodings)
@@ -348,19 +349,21 @@ class Classifier(object):
 			scores.append(min(closest_distances[0][i]))
 			log.debug("predict | *****MIN****| {}".format(min(closest_distances[0][i])))
 
-
 		predictions = []
 		if len(scores) > 0:
 			for pred, loc, score in zip(self.classifier.predict(faces_encodings), X_face_locations, scores):
-				if distance_threshold > score :
-					log.warning("predict | Person {} does not outbounds treshold {}>{}".format(pred,score,distance_threshold))
-					predictions = []
+				score = 1 - score
+				if distance_threshold > score:
+					log.warning(
+						"predict | Person {} does not outbounds treshold {}<{}".format(pred, score, distance_threshold))
 				else:
 					log.debug("predict | Pred: {} | Loc: {} | Score: {}".format(pred, loc, score))
 					predictions.append((pred, loc))
 			log.debug("predict | Prediction: {}".format(predictions))
-		else:
+
+		if len(predictions) == 0 or len(scores) == 0:
 			log.debug("predict | Face not recognized :/")
-			predictions = -1
+			return -1
+
 
 		return {"predictions": predictions, "scores": scores}
