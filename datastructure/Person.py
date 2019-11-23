@@ -66,7 +66,7 @@ class Person(object):
 			return None
 		# log.debug("initDataset | Image loaded! | Searching for face ...")
 		# Array of w,x,y,z coordinates
-		face_bounding_boxes = face_locations(image, model="hog")
+		face_bounding_boxes = face_locations(image, model="cnn")
 		face_data = None
 		if len(face_bounding_boxes) == 1:
 			log.info("initDataset | Image {0} have only 1 face, loading for future training ...".format(img_path))
