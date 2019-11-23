@@ -24,11 +24,11 @@
 	"classifier": {
 		"trainin_dir": "dataset/images/",
 		"model_path": "dataset/model/",
-		"timestamp": "20191123_165515",
+		"timestamp": "20191123_171821",
 		"params": {
 			"algorithm": "ball_tree",
 			"metric": "minkowski",
-			"n_neighbors": 80,
+			"n_neighbors": 20,
 			"p": 2,
 			"weights": "distance"
 		}
