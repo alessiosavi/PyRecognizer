@@ -1,3 +1,4 @@
+
 {
 	"PyRecognizer": {
 		"Version": "0.1.3",
@@ -12,7 +13,7 @@
 	},
 	"network": {
 		"host": "0.0.0.0",
-		"port": 11001,
+		"port": 8081,
 		"templates": "api/templates/",
 		"SSL": {
 			"enabled": true,
@@ -23,7 +24,7 @@
 	"classifier": {
 		"trainin_dir": "dataset/images/",
 		"model_path": "dataset/model/",
-		"timestamp": "20190522_170246",
+		"timestamp": "20191123_165515",
 		"params": {
 			"algorithm": "ball_tree",
 			"metric": "minkowski",

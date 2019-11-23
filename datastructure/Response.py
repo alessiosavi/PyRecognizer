@@ -36,7 +36,8 @@ class Response(object):
 			log.debug("parse_data | Data not None ...")
 			if isinstance(data, dict):
 				log.debug("parse_data | Data is a dict")
-				if data["predictions"] and data["scores"]:
+				if "predictions" in data and "scores" in data:
+				# if predictions data["predictions"] and data["scores"]:
 					log.debug("parse_data | Predictions and scores provided")
 					if isinstance(data["predictions"], list) and isinstance(data["scores"], list):
 						predictions = data["predictions"]
