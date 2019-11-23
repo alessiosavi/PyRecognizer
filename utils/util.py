@@ -87,6 +87,7 @@ def init_main_data(config_file):
 		os.makedirs(TMP_UPLOAD_TRAINING)
 	if not os.path.exists(TMP_UPLOAD):
 		os.makedirs(TMP_UPLOAD)
+	
 
 	return CFG, log, TMP_UPLOAD_PREDICTION, TMP_UPLOAD_TRAINING, TMP_UPLOAD
 
@@ -99,6 +100,8 @@ def load_logger(level, path, name):
 	:param name:
 	"""
 	logger = logging.getLogger()  # set up root logger
+	if not os.path.exists(path):
+		os.makedirs(path)
 	filename = '{0}{1}'.format(path, name)
 	handler = TimedRotatingFileHandler(filename, when='H')
 	handler.suffix = "%Y-%m-%d.log"
