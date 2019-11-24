@@ -179,7 +179,7 @@ class Classifier(object):
 			'p': power_range,
 		}
 		log.debug("tuning | Parameter -> {}".format(pformat(parameter_space)))
-		grid = GridSearchCV(self.classifier, parameter_space, cv=3, scoring='accuracy', verbose=20, n_jobs=2)
+		grid = GridSearchCV(self.classifier, parameter_space, cv=5, scoring='accuracy', verbose=20, n_jobs=2)
 		grid.fit(X_train, Y_train)
 		log.info("TUNING COMPLETE | DUMPING DATA!")
 		# log.info("tuning | Grid Scores: {}".format(pformat(grid.grid_scores_)))
@@ -302,7 +302,7 @@ class Classifier(object):
 		return DATASET
 
 	# TODO: Add configuration parameter for choose the distance_threshold
-	def predict(self, X_img_path, distance_threshold=0.65):
+	def predict(self, X_img_path, distance_threshold=0.50):
 		"""
 		Recognizes faces in given image using a trained KNN classifier
 
@@ -338,7 +338,7 @@ class Classifier(object):
 		# Find encodings for faces in the test iamge
 		log.debug("predict | Encoding faces ...")
 		# num_jitters increase the distortion check
-		faces_encodings = face_recognition.face_encodings(X_img, known_face_locations=X_face_locations, num_jitters=200)
+		faces_encodings = face_recognition.face_encodings(X_img, known_face_locations=X_face_locations, num_jitters=300)
 		log.debug("predict | Face encoded! | Let's ask to the neural network ...")
 		# Use the KNN model to find the best matches for the test face
 		closest_distances = self.classifier.kneighbors(faces_encodings)
