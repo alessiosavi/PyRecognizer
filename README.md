@@ -5,6 +5,9 @@ A simple face recognition engine
 [![License](https://img.shields.io/github/license/alessiosavi/PyRecognizer)](https://img.shields.io/github/license/alessiosavi/PyRecognizer) [![Version](https://img.shields.io/github/v/tag/alessiosavi/PyRecognizer)](https://img.shields.io/github/v/tag/alessiosavi/PyRecognizer) [![Code size](https://img.shields.io/github/languages/code-size/alessiosavi/PyRecognizer)](https://img.shields.io/github/languages/code-size/alessiosavi/PyRecognizer) [![Repo size](https://img.shields.io/github/repo-size/alessiosavi/PyRecognizer)](https://img.shields.io/github/repo-size/alessiosavi/PyRecognizer) [![Issue open](https://img.shields.io/github/issues/alessiosavi/PyRecognizer)](https://img.shields.io/github/issues/alessiosavi/PyRecognizer)
 [![Issue closed](https://img.shields.io/github/issues-closed/alessiosavi/PyRecognizer)](https://img.shields.io/github/issues-closed/alessiosavi/PyRecognizer)
 
+## Video guide for train/predict
+
+<https://youtu.be/Tctui-KzPaM>
 
 ## Introduction
 
@@ -27,6 +30,7 @@ Currently it use a KNN in order to predict the given faces.
 ## Table Of Contents
 
 - [PyRecognizer](#pyrecognizer)
+  - [Video guide for train/predict](#video-guide-for-trainpredict)
   - [Introduction](#introduction)
   - [Requirements](#requirements)
   - [Table Of Contents](#table-of-contents)
