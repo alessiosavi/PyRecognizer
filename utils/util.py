@@ -210,11 +210,11 @@ def verify_extension(file):
         first_bytes = f.read(100)
 
     if b"PK" in first_bytes[:2] and extension == ".zip":
-		zp = zipfile.ZipFile(file)
-    	size = sum([zinfo.file_size for zinfo in  zp.filelist])
-    	zip_kb = float(size)/(1000*1000)#MB
-		if zip_kb > 1000:
-			raise Exception("Zip file size is to much ...")
+        zp = zipfile.ZipFile(file)
+        size = sum([zinfo.file_size for zinfo in zp.filelist])
+        zip_kb = float(size)/(1000*1000)  # MB
+        if zip_kb > 1000:
+                raise Exception("Zip file size is to much ...")
         return "zip"
 
     elif "cnumpy.core.multiarray" in first_bytes and extension == ".dat":
