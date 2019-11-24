@@ -170,16 +170,17 @@ class Classifier(object):
 		# 'auto' will automagically choose an algorithm by the given value
 		algorithm_range = ['ball_tree', 'kd_tree', 'brute']
 		power_range = [1, 2]
-		nn_root = int(round(sqrt(len(X_train))))
+		# DLIB wrapper will return 68 point from the face
+		nn_root = list(range(int(round(sqrt(68))),int(68/2)))
 		parameter_space = {
-			'n_neighbors': [nn_root],
+			'n_neighbors': nn_root,
 			'metric': metrics_range,
 			'weights': weights_range,
 			'algorithm': algorithm_range,
 			'p': power_range,
 		}
 		log.debug("tuning | Parameter -> {}".format(pformat(parameter_space)))
-		grid = GridSearchCV(self.classifier, parameter_space, cv=5, scoring='accuracy', verbose=20, n_jobs=2)
+		grid = GridSearchCV(self.classifier, parameter_space, cv=2, scoring='accuracy', verbose=20, n_jobs=4)
 		grid.fit(X_train, Y_train)
 		log.info("TUNING COMPLETE | DUMPING DATA!")
 		# log.info("tuning | Grid Scores: {}".format(pformat(grid.grid_scores_)))
@@ -204,7 +205,7 @@ class Classifier(object):
 		"""
 
 		log.debug("verify_performance | Analyzing performance ...")
-		log.info("Classification Report: {}".format(pformat(classification_report(y_test, y_pred))))
+		log.info("\nClassification Report: {}".format(pformat(classification_report(y_test, y_pred))))
 		log.info("balanced_accuracy_score: {}".format(pformat(balanced_accuracy_score(y_test, y_pred))))
 		log.info("accuracy_score: {}".format(pformat(accuracy_score(y_test, y_pred))))
 		log.info("precision_score: {}".format(pformat(precision_score(y_test, y_pred, average='weighted'))))
@@ -325,7 +326,7 @@ class Classifier(object):
 		except OSError:
 			log.error("predict | What have you uploaded ???")
 			return -2
-		# TODO: Manage multiple faces
+
 		log.debug("predict | Extracting faces locations ...")
 		X_face_locations = face_recognition.face_locations(X_img, model="cnn")
 		log.debug("predict | Found {} face(s) for the given image".format(len(X_face_locations)))
