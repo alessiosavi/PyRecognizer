@@ -20,6 +20,7 @@ CONFIG_FILE = "conf/test.json"
 
 CFG, log, TMP_UPLOAD_PREDICTION, TMP_UPLOAD_TRAINING, TMP_UPLOAD = init_main_data(CONFIG_FILE)
 
+SSL_ENABLED = CFG["network"]["SSL"]["enabled"]
 # $(base64 /dev/urandom  | head -n 1 | md5sum | awk '{print $1}')
 SECRET_KEY = str(base64.b64encode(bytes(os.urandom(24)))).encode()
 
@@ -145,7 +146,7 @@ def secure_headers(response):
 	Apply securiy headers to the response call
 	:return:
 	"""
-	return secure_request(response)
+	return secure_request(response,SSL_ENABLED)
 
 
 def generate_csrf_token():
@@ -162,7 +163,7 @@ app.jinja_env.globals['csrf_token'] = generate_csrf_token
 
 if __name__ == '__main__':
 	app.jinja_env.autoescape = True
-	if CFG["network"]["SSL"]["enabled"] is True:
+	if SSL_ENABLED:
 		log.debug("main | RUNNING OVER SSL")
 		app.run(host=CFG["network"]["host"], port=CFG["network"]["port"], threaded=False, debug=True, ssl_context=(
 			PUB_KEY, PRIV_KEY))
