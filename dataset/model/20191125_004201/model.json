@@ -1,0 +1,1 @@
+{"classifier_file": "20191125_004201/model.clf", "params": {"activation": "identity", "hidden_layer_sizes": [100], "learning_rate": "constant", "solver": "adam"}}
