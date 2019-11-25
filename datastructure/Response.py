@@ -43,7 +43,7 @@ class Response(object):
 						if len(predictions) == len(scores):
 							log.debug("parse_data | Predictions and scores same lenght")
 						for i in range(len(predictions)):
-							t[predictions[i][0]] = 1 - scores[i]
+							t[predictions[i][0]] = scores[i]
 						log.debug("parse_data | Dict initalized -> {}".format(t))
 						return t
 

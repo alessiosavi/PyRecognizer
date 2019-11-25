@@ -23,7 +23,7 @@
   "classifier": {
     "trainin_dir": "dataset/images/",
     "model_path": "dataset/model/",
-    "timestamp": "20191124_201515",
+    "timestamp": "20191125_004201",
     "params": {
       "algorithm": "ball_tree",
       "metric": "minkowski",
