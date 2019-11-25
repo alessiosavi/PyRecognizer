@@ -205,11 +205,8 @@ def verify_extension(file):
     log = logging.getLogger()
     extension = os.path.splitext(file)[1]
     log.debug("verify_extension | File: {} | Ext: {}".format(file, extension))
-    first_bytes = ''
-    with open(file, 'rb') as f:
-        first_bytes = f.read(100)
-
-    if b"PK" in first_bytes[:2] and extension == ".zip":
+    
+    if extension == ".zip":
         zp = zipfile.ZipFile(file)
         size = sum([zinfo.file_size for zinfo in zp.filelist])
         zip_kb = float(size)/(1000*1000)  # MB
@@ -217,7 +214,7 @@ def verify_extension(file):
                 raise Exception("Zip file size is to much ...")
         return "zip"
 
-    elif "cnumpy.core.multiarray" in first_bytes and extension == ".dat":
+    elif extension == ".dat":
         # Photos have been alredy analyzed, dataset is ready!
         return "dat"
     return None
