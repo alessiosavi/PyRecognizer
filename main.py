@@ -165,7 +165,7 @@ if __name__ == '__main__':
 	app.jinja_env.autoescape = True
 	if SSL_ENABLED:
 		log.debug("main | RUNNING OVER SSL")
-		app.run(host=CFG["network"]["host"], port=CFG["network"]["port"], threaded=False, debug=True, ssl_context=(
+		app.run(host=CFG["network"]["host"], port=CFG["network"]["port"], threaded=False, debug=True,use_reloader=False, ssl_context=(
 			PUB_KEY, PRIV_KEY))
 	else:
 		log.debug("main | HTTPS DISABLED | RUNNING OVER HTTP")
