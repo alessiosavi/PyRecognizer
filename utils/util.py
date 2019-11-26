@@ -11,6 +11,7 @@ openssl req -x509 -out localhost.crt -keyout localhost.key \
 
 
 """
+import numpy as np
 import json
 import logging
 import os
@@ -22,6 +23,7 @@ import zipfile
 from logging.handlers import TimedRotatingFileHandler
 
 from PIL import Image, ImageDraw
+import PIL
 
 levels = {
     'debug': logging.DEBUG,
@@ -73,8 +75,11 @@ def init_main_data(config_file):
     :param config_file:
     :return:
     """
-    with open(config_file) as f:
-        CFG = json.load(f)
+    try:
+        with open(config_file) as f:
+            CFG = json.load(f)
+    except json.decoder.JSONDecodeError:
+        raise Exception("Unable to load JSON File: {}".format(config_file))
 
     log = load_logger(CFG["logging"]["level"], CFG["logging"]
                       ["path"], CFG["logging"]["prefix"])
@@ -205,13 +210,13 @@ def verify_extension(file):
     log = logging.getLogger()
     extension = os.path.splitext(file)[1]
     log.debug("verify_extension | File: {} | Ext: {}".format(file, extension))
-    
+
     if extension == ".zip":
         zp = zipfile.ZipFile(file)
         size = sum([zinfo.file_size for zinfo in zp.filelist])
         zip_kb = float(size)/(1000*1000)  # MB
         if zip_kb > 1000:
-                raise Exception("Zip file size is to much ...")
+            raise Exception("Zip file size is to much ...")
         return "zip"
 
     elif extension == ".dat":
@@ -266,3 +271,34 @@ def secure_request(request, ssl):
         request.headers['expect-ct'] = 'max-age=60, enforce'
 
     return request
+
+
+def load_image_file(file, mode='RGB',):
+    """
+    Loads an image file (.jpg, .png, etc) into a numpy array
+
+    :param file: image file name or file object to load
+    :param mode: format to convert the image to. Only 'RGB' (8-bit RGB, 3 channels) and 'L' (black and white) are supported.
+    :return: image contents as numpy array
+    """
+
+    im = PIL.Image.open(file)
+    width, height = im.size
+    w, h = width, height
+    log = logging.getLogger()
+    log.debug("load_image_file | Image dimension: ({}:{})".format(w,h))
+    if width >= 1200 and width <= 1600:
+        w = width * (1/2)
+        h = height * (1/2)
+    elif width >= 1600 and width <= 3600:
+        w = width * (1/3)
+        h = height * (1/3)
+    if w != width:
+        maxsize = (w, h)
+        log.debug(
+            "load_image_file | Image have to high dimension, avoiding memory error. Resizing to {}".format(maxsize))
+        im.thumbnail(maxsize, PIL.Image.ANTIALIAS)
+
+    if mode:
+        im = im.convert(mode)
+    return np.array(im)
