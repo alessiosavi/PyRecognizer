@@ -9,6 +9,7 @@ from logging import getLogger
 
 from datastructure.Response import Response
 from utils.util import print_prediction_on_image, random_string, retrieve_dataset
+from os import path
 
 log = getLogger()
 
@@ -89,7 +90,6 @@ def train_network(folder_uncompress, zip_file, clf):
 
     log.debug("train_network | Starting training phase ...")
     dataset = retrieve_dataset(folder_uncompress, zip_file, clf)
-
     if dataset is None:
         return Response(error="ERROR DURING LOADING DAT", description="Seems that the dataset is not valid").__dict__
 

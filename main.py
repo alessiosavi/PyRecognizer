@@ -18,7 +18,7 @@ from flask_login import LoginManager, UserMixin, login_required, login_user, log
 from flask_sqlalchemy import SQLAlchemy
 
 
-users = {'alessio@savi.com': {'password': 'secret'}}
+users = {'alessio@savi.com': 'secret','alessio':"password","admin":"admin"}
 
 # ===== LOAD CONFIGURATION FILE =====
 # TODO: Add argument/environment var parser for manage configuration file
@@ -165,7 +165,7 @@ def login():
         return render_template("login.html")
 
     email = request.form['email']
-    if request.form['password'] == users[email]['password']:
+    if request.form['password'] == users[email]:
         user = User()
         user.id = email
         login_user(user)

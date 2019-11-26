@@ -17,8 +17,10 @@ from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.neural_network import MLPClassifier
 from tqdm import tqdm
 
+from PIL import Image
+
 from datastructure.Person import Person
-from utils.util import dump_dataset
+from utils.util import dump_dataset, load_image_file
 
 log = logging.getLogger()
 
@@ -287,34 +289,28 @@ class Classifier(object):
                 DATASET["Y"].append(item)
         return DATASET
 
-    # TODO: Add configuration parameter for choose the distance_threshold
-    def predict(self, X_img_path, distance_threshold=0.45):
-        """
-        Recognizes faces in given image using a trained KNN classifier
-
-        :param X_img_path: path to image to be recognized
-        :param distance_threshold: (optional) distance threshold for face classification. the larger it is,
-        the more chance of mis-classifying an unknown person as a known one.
-        :return: a list of names and face locations for the recognized faces in the image: [(name, bounding box), ...].
-                For faces of unrecognized persons, the name 'unknown' will be returned.
-        """
-
-        if self.classifier is None:
-            log.error(
-                "predict | Be sure that you have loaded/trained the nerual network model")
-            return None
-
+    # The method is delegated to try to retrieve the face from the given image.
+    # In case of cuda_malloc error (out of memory), the image will be resized
+    @staticmethod
+    def extract_face_from_image(X_img_path):
         # Load image data in a numpy array
         try:
             log.debug("predict | Loading image {}".format(X_img_path))
             # TODO: Necessary cause at this point we are not sure what file type is this ...
-            X_img = face_recognition.load_image_file(X_img_path)
+            X_img = load_image_file(X_img_path)
+            #X_img = Image.open(X_img_path)
         except OSError:
             log.error("predict | What have you uploaded ???")
             return -2
-
         log.debug("predict | Extracting faces locations ...")
-        X_face_locations = face_recognition.face_locations(X_img, model="cnn")
+        try:
+            X_face_locations = face_recognition.face_locations(
+                X_img, model="cnn")
+        except RuntimeError:
+            log.error(
+                "predict | Have not enough memory, unloading data and retry")
+            return None, None
+
         log.debug("predict | Found {} face(s) for the given image".format(
             len(X_face_locations)))
 
@@ -329,10 +325,36 @@ class Classifier(object):
         faces_encodings = face_recognition.face_encodings(
             X_img, known_face_locations=X_face_locations, num_jitters=300)
         log.debug("predict | Face encoded! | Let's ask to the neural network ...")
+        return faces_encodings, X_face_locations
+
+    # TODO: Add configuration parameter for choose the distance_threshold
+    def predict(self, X_img_path, distance_threshold=0.45):
+        """
+        Recognizes faces in given image using a trained KNN classifier
+
+        :param X_img_path: path to image to be recognized
+        :param distance_threshold: (optional) distance threshold for face classification. the larger it is,
+        the more chance of mis-classifying an unknown person as a known one.
+        :return: a list of names and face locations for the recognized faces in the image: [(name, bounding box), ...].
+                                        For faces of unrecognized persons, the name 'unknown' will be returned.
+        """
+
+        if self.classifier is None:
+            log.error(
+                "predict | Be sure that you have loaded/trained the nerual network model")
+            return None
+
+        faces_encodings, X_face_locations = None, None
+        while faces_encodings is None or X_face_locations is None:
+            
+            faces_encodings, X_face_locations = Classifier.extract_face_from_image(
+                X_img_path)
+
         # Use the KNN model to find the best matches for the test face
         closest_distances = self.classifier.predict(faces_encodings)
-        log.debug("predict | Persons recognized: [{}]".format(closest_distances))
-        
+        log.debug("predict | Persons recognized: [{}]".format(
+            closest_distances))
+
         predictions = self.classifier.predict_proba(faces_encodings)
         pred = []
         for prediction in predictions:
@@ -353,9 +375,11 @@ class Classifier(object):
         if len(face_prediction) > 0:
             for person_score, loc in zip(face_prediction, X_face_locations):
                 if person_score[1] < distance_threshold:
-                    log.warning("predict | Person {} does not outbounds treshold {}<{}".format(pred, person_score[1], distance_threshold))
+                    log.warning("predict | Person {} does not outbounds treshold {}<{}".format(
+                        pred, person_score[1], distance_threshold))
                 else:
-                    log.debug("predict | Pred: {} | Loc: {} | Score: {}".format(person_score[0], loc, person_score[1]))
+                    log.debug("predict | Pred: {} | Loc: {} | Score: {}".format(
+                        person_score[0], loc, person_score[1]))
                     _predictions.append((person_score[0], loc))
                     scores.append(person_score[1])
             log.debug("predict | Prediction: {}".format(_predictions))
