@@ -259,7 +259,7 @@ def secure_request(request, ssl):
     :param request:
     :return:
     """
-    request.headers['Content-Security-Policy'] = "default-src 'self'"
+    # request.headers['Content-Security-Policy'] = "script-src 'self' cdnjs.cloudflare.com ; "
     request.headers['Feature-Policy'] = "geolocation 'none'; microphone 'none'; camera 'self'"
     request.headers['Referrer-Policy'] = 'no-referrer'
     request.headers['Strict-Transport-Security'] = "max-age=60; includeSubDomains; preload"
