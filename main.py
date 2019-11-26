@@ -93,6 +93,7 @@ def predict():
     # check if the post request has the file part
     if 'file' not in request.files or request.files['file'].filename == '':
         flash('No file choosed :/', category="error")
+        log.warning("predict_api | No file choosed!")
         return redirect(request.url)  # Return to HTML page [GET]
     file = request.files['file']
     filename = secure_filename(file.filename)

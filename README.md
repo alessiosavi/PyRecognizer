@@ -327,19 +327,20 @@ Angela_Bassett 	6
 Albert_Costa 	6
 </pre></details>
 
-
 ## Introduction
 
-This project is developed for have a plug-and-play facial recognition tool able to detect and recognize multiple faces from photos. It aim to be inter operable with other tool. For this purpose, it expose REST api in order to interact with the facial recognition engine (train/tune/predict).
+This project is developed for have a plug-and-play facial recognition tool able to detect and recognize multiple faces from photos. It aim to be inter-operable with other tool. For this purpose, it expose REST api in order to interact with the facial recognition engine (train/tune/predict) and return the result of the prediction in a JSON format.
 
 It's written for be a basecode/project structure for future project where a more complicated facial detect + neural network have to be engaged.
-Currently it use a KNN in order to predict the given faces.
+Currently it use a Multi Layer Perceptron as neural network architecture in order to predict the given faces.
+
+The tool is powered with `Flask_MonitoringDashboard` that expose some useful utilization/performance graph at the `/dashboard` endpoint
 
 ## Requirements
 
 - [olefile](https://github.com/decalage2/olefile) Parse, read and write Microsoft OLE2 files (deal with image)
 - [werkzeug](https://github.com/pallets/werkzeug) The comprehensive WSGI web application library
-- [face_recognition](https://github.com/ageitgey/face_recognition) Detect face point
+- [face_recognition](https://github.com/ageitgey/face_recognition) Extract face point from image
 - [tqdm](https://github.com/tqdm/tqdm) A Fast, Extensible Progress Bar
 - [Flask_MonitoringDashboard](https://github.com/flask-dashboard/Flask-MonitoringDashboard) Automatically monitor the evolving performance of Flask/Python web services
 - [Flask](https://github.com/pallets/flask) The Python micro framework for building web applications
@@ -379,16 +380,25 @@ conda activate PyRecognizer
 pip install -r requirements.txt
 ```
 
-At this point you are ready to run the software.
+At this point all the necessary library for run the tool are ready, and you can run the software.
 
 ## Usage
 
-Before you can train the KNN with your photos, you need to create an archive that contains the image of the people's faces that you want to predict.
+You can view the following example video in order to understand how to interact with the tool in order to:
+
+- Create dataset from images
+- Predict image
+- Train/Tune neural network
+
+[Video guide for train/predict](#video-guide-for-trainpredict)  
+
+Before you can train the neural network with the photos, you need to create an archive that contains the image of the people's faces that you want to predict.
 
 - Save a bunch of images of the people that you need to recognize.
 - Copy the image in a folder. The name of that folder is important, cause it will be used as a label for the dataset (images) that contains during prediction.
 - Compress the folders in a `zip` file.
 
+Before train the neural network, you have to create a dataset with the people images that you want to recognize.
 If your dataset tree structure look likes the following tree dir, you can continue with training phase.
 
 ```text
@@ -407,9 +417,25 @@ If your dataset tree structure look likes the following tree dir, you can contin
 In this case we have a dataset that contains the photos of 5 people (bfegan, dhawley, heather etc).  
 Each directory, contains the photos related to the "target".
 
+You can find an example dataset at the following link:
+<https://www.kaggle.com/jessicali9530/lfw-dataset>
+
+Some people in this dataset have only very few image.
+
+We can create a new one dataset using the following `bash` command, in order to exctract only the people that contains more than 5 images:
+
+```bash
+# Extract only the people that have more than 5 photos (-gt 5)
+for i in $(ls); do a=$(ls $i |wc -l); if [ "$a" -gt 5 ]; then echo $i ; fi ; done > people_ok
+# Create a directory for store the images
+mkdir -p /tmp/faces
+# Copy the filtered directory in the new one
+for i in $(cat people_ok  | xargs echo -n) ; do cp -r $i /tmp/faces/ ; done
+```
+
 At this point the dataset is complete and you can continue with training/tuning.
 
-Backup and remove the already present model (if present,inside the `dataset/model` directory), the tool will understand that you want to train the model and will initialize a new KNN model. The model have the following template: `%Y%m%d_%H%M%S`, related to the time that was generated.
+Backup and remove the already present model (if present,inside the `dataset/model` directory), the tool will understand that you want to train the model and will initialize a new MLP model. The model have the following name template: `%Y%m%d_%H%M%S`, related to the time that was generated.
 
 Open your browser at the `endpoint:port/train` specified in the configuration file (`conf/test.json`).  
 **NOTE:** you can switch on/off the SSL, be sure to add `https` before the endpoint ip/hostname if it is enabled.
