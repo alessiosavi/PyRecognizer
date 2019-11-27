@@ -15,12 +15,12 @@ The following list contains the name of the celebrity and the number of photos u
 
 <details><summary> Celebrites list</summary><br><pre>
 George_W_Bush 	530
-Colin_Powell 	236
+Colin_Powell  236
 Tony_Blair 	144
 Donald_Rumsfeld 	121
 Gerhard_Schroeder 	109
-Ariel_Sharon 	77
-Hugo_Chavez 	71
+Ariel_Sharon  77
+Hugo_Chavez   71
 Junichiro_Koizumi 	60
 Jean_Chretien 	55
 John_Ashcroft 	53
@@ -384,11 +384,11 @@ At this point all the necessary library for run the tool are ready, and you can 
 
 ## Usage
 
-You can view the following example video in order to understand how to interact with the tool in order to:
+You can view the following example video in order to understand how to interact with the tool for the following process:
 
 - Create dataset from images
 - Predict image
-- Train/Tune neural network
+- Train/Tune the neural network
 
 [Video guide for train/predict](#video-guide-for-trainpredict)  
 

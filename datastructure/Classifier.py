@@ -143,13 +143,14 @@ class Classifier(object):
 
         X_train, x_test, Y_train, y_test = train_test_split(
             X, Y, test_size=0.25)
-        self.classifier = MLPClassifier(max_iter=100)
-        # Hyperparameter of the neural network (MLP)
+        self.classifier = MLPClassifier(max_iter=200)
+        # Hyperparameter of the neural network (MLP) to tune
         parameter_space = {
-            'hidden_layer_sizes': [(68, 50, 100), (68, 100, 50), (100,)],
-            'activation': ['identity', 'tanh', 'relu'],
+            'hidden_layer_sizes': [(200,),(100,200,100),(100,),],
+            #'activation': ['identity', 'tanh', 'relu'],
+            'activation': ['identity'],
             'solver': ['adam'],
-            'learning_rate': ['constant', 'adaptive'],
+            'learning_rate': ['constant'],
         }
         log.debug("tuning | Parameter -> {}".format(pformat(parameter_space)))
         grid = GridSearchCV(self.classifier, parameter_space,
@@ -237,6 +238,9 @@ class Classifier(object):
         log.debug("init_peoples_list | Initalizing people ...")
         if peoples_path is not None and os.path.isdir(peoples_path):
             self.training_dir = peoples_path
+        else:
+            raise Exception("Dataset (peoples faces) path not provided :/")
+        # The init process can be threadized, but BATCH method will perform better
         # pool = ThreadPool(3)
         # self.peoples_list = pool.map(self.init_peoples_list_core, os.listdir(self.training_dir))
 
@@ -296,14 +300,14 @@ class Classifier(object):
             X_img = load_image_file(X_img_path)
         except OSError:
             log.error("predict | What have you uploaded ???")
-            return -2
+            return -2, -2
         log.debug("predict | Extracting faces locations ...")
         try:
             X_face_locations = face_recognition.face_locations(
                 X_img, model="cnn")
         except RuntimeError:
             log.error(
-                "predict | Have not enough memory, unloading data and retry")
+                "predict | Have not enough memory, unload data and retry")
             return None, None
 
         log.debug("predict | Found {} face(s) for the given image".format(
@@ -312,13 +316,13 @@ class Classifier(object):
         # If no faces are found in the image, return an empty result.
         if len(X_face_locations) == 0:
             log.warning("predict | Seems that no faces was found :( ")
-            return -3
+            return -3, -3
 
         # Find encodings for faces in the test iamge
         log.debug("predict | Encoding faces ...")
         # num_jitters increase the distortion check
         faces_encodings = face_recognition.face_encodings(
-            X_img, known_face_locations=X_face_locations, num_jitters=300)
+            X_img, known_face_locations=X_face_locations, num_jitters=100)
         log.debug("predict | Face encoded! | Let's ask to the neural network ...")
         return faces_encodings, X_face_locations
 
@@ -340,20 +344,26 @@ class Classifier(object):
             return None
 
         faces_encodings, X_face_locations = None, None
+        # Resize image if necessary for avoid cuda-malloc error (important for low gpu)
+        # In case of error, will be returned back an integer.
+        # FIXME: manage gpu memory unload in case of None
         while faces_encodings is None or X_face_locations is None:
-            
             faces_encodings, X_face_locations = Classifier.extract_face_from_image(
                 X_img_path)
+            # In this case return back the error to the caller
+            if isinstance(faces_encodings, int):
+                return faces_encodings
 
-        # Use the KNN model to find the best matches for the test face
+        # Use the MLP model to find the best matches for the face(s)
+        log.debug("predict | Understanding peoples recognized from NN ...")
         closest_distances = self.classifier.predict(faces_encodings)
         log.debug("predict | Persons recognized: [{}]".format(
             closest_distances))
 
+        log.debug("predict | Asking to the neural network for probability ...")
         predictions = self.classifier.predict_proba(faces_encodings)
         pred = []
         for prediction in predictions:
-            # [('au1',confidence 1), ('au2', confidence 2), ... ]
             pred.append(dict([v for v in sorted(zip(self.classifier.classes_, prediction),
                                                 key=lambda c: c[1], reverse=True)[:len(closest_distances)]]))
         log.debug("predict | Predict proba -> {}".format(pred))
@@ -380,17 +390,8 @@ class Classifier(object):
             log.debug("predict | Prediction: {}".format(_predictions))
             log.debug("predict | Score: {}".format(scores))
 
-        if len(_predictions) == 0 or len(face_prediction) == 0:
+        else:
             log.debug("predict | Face not recognized :/")
             return -1
 
         return {"predictions": _predictions, "scores": scores}
-
-        # log.debug("Debug predict -> {}".format(pred))
-        # # At least we need to recognize 1 face
-        # name = closest_distances[0]
-        # score = pred[0][name]
-        # if score > distance_threshold:
-        #     return {"predictions": [name], "scores": score}
-        # else:
-        #     return -1

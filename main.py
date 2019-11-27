@@ -16,6 +16,7 @@ from api.Api import predict_image, train_network, tune_network
 from datastructure.Classifier import Classifier
 from utils.util import init_main_data, random_string, secure_request
 
+# Hardcoded credentials for tune/train
 users = {'alessio@savi.com': 'secret','alessio':"password","admin":"admin"}
 
 # ===== LOAD CONFIGURATION FILE =====
@@ -186,7 +187,7 @@ def csrf_protect():
     Validate csrf token against the one in session
     :return:
     """
-    if "dashboard" not in str(request.url_rule): #and "login" not in str(request.url_rule):
+    if "dashboard" not in str(request.url_rule):
         if request.method == "POST":
             token = session.pop('_csrf_token', None)
             if not token or token != request.form.get('_csrf_token'):
