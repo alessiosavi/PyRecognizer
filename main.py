@@ -6,17 +6,15 @@ import base64
 import os
 
 import flask_monitoringdashboard as dashboard
-from flask import Flask, flash, jsonify, render_template, request, send_from_directory, session, url_for
+from flask import Flask, flash, jsonify, render_template, request, send_from_directory, session
+from flask_login import LoginManager, UserMixin, login_required, login_user, current_user
+from flask_sqlalchemy import SQLAlchemy
 from werkzeug.exceptions import abort
 from werkzeug.utils import redirect, secure_filename
 
 from api.Api import predict_image, train_network, tune_network
 from datastructure.Classifier import Classifier
 from utils.util import init_main_data, random_string, secure_request
-from flask_login import LoginManager, UserMixin, login_required, login_user, logout_user, current_user
-
-from flask_sqlalchemy import SQLAlchemy
-
 
 users = {'alessio@savi.com': 'secret','alessio':"password","admin":"admin"}
 

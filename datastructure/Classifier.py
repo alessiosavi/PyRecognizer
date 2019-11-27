@@ -7,7 +7,6 @@ import logging
 import os
 import pickle
 import time
-from math import sqrt
 from pprint import pformat
 
 import face_recognition
@@ -16,8 +15,6 @@ from sklearn.metrics import accuracy_score, balanced_accuracy_score, classificat
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.neural_network import MLPClassifier
 from tqdm import tqdm
-
-from PIL import Image
 
 from datastructure.Person import Person
 from utils.util import dump_dataset, load_image_file
@@ -296,9 +293,7 @@ class Classifier(object):
         # Load image data in a numpy array
         try:
             log.debug("predict | Loading image {}".format(X_img_path))
-            # TODO: Necessary cause at this point we are not sure what file type is this ...
             X_img = load_image_file(X_img_path)
-            #X_img = Image.open(X_img_path)
         except OSError:
             log.error("predict | What have you uploaded ???")
             return -2

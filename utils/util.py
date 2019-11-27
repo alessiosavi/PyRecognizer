@@ -11,7 +11,6 @@ openssl req -x509 -out localhost.crt -keyout localhost.key \
 
 
 """
-import numpy as np
 import json
 import logging
 import os
@@ -22,8 +21,9 @@ import string
 import zipfile
 from logging.handlers import TimedRotatingFileHandler
 
-from PIL import Image, ImageDraw
 import PIL
+import numpy as np
+from PIL import Image, ImageDraw
 
 levels = {
     'debug': logging.DEBUG,
@@ -256,6 +256,7 @@ def retrieve_dataset(folder_uncompress, zip_file, clf):
 def secure_request(request, ssl):
     """
 
+    :param ssl:
     :param request:
     :return:
     """
@@ -287,12 +288,18 @@ def load_image_file(file, mode='RGB',):
     w, h = width, height
     log = logging.getLogger()
     log.debug("load_image_file | Image dimension: ({}:{})".format(w,h))
-    if width >= 1200 and width <= 1600:
+    # Resize in case of to bigger dimension
+    if 1200 <= width <= 1600:
         w = width * (1/2)
         h = height * (1/2)
-    elif width >= 1600 and width <= 3600:
+    elif 1600 <= width <= 3600:
         w = width * (1/3)
         h = height * (1/3)
+    # TODO: Prettify the algorithm instead of set 800
+    else:
+        w = (800/width) * width
+        h = (800/height) * height
+
     if w != width:
         maxsize = (w, h)
         log.debug(
