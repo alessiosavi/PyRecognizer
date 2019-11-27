@@ -9,7 +9,6 @@ from logging import getLogger
 
 from datastructure.Response import Response
 from utils.util import print_prediction_on_image, random_string, retrieve_dataset
-from os import path
 
 log = getLogger()
 
