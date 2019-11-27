@@ -47,7 +47,7 @@ class Person(object):
 				self.dataset["X"].append(self.init_dataset_core(image_path))
 			self.dataset["X"] = list(filter(None.__ne__, self.dataset["X"]))  # Remove None
 			# Loading the Y [target]
-			for i in range(len(self.dataset["X"])):
+			for _ in range(len(self.dataset["X"])):
 				self.dataset["Y"].append(self.name)
 			log.debug("Adding {} entries for {}".format(len(self.dataset["X"]), self.name))
 		return
@@ -66,11 +66,13 @@ class Person(object):
 			return None
 		# log.debug("initDataset | Image loaded! | Searching for face ...")
 		# Array of w,x,y,z coordinates
+		# NOTE: Can be used batch_face_locations in order to threadize the image init, but unfortunately
+		# it's the only GPU that i have right now. And, of course, i'll try to don't burn it
 		face_bounding_boxes = face_locations(image, model="cnn")
 		face_data = None
 		if len(face_bounding_boxes) == 1:
 			log.info("initDataset | Image {0} have only 1 face, loading for future training ...".format(img_path))
-			# Loading the X [data] using 300 times distortion
+			# Loading the X [data] using 300 different distortion
 			face_data = face_encodings(image, known_face_locations=face_bounding_boxes, num_jitters=300)[0]
 		else:
 			log.error("initDataset | Image {0} not suitable for training!".format(img_path))

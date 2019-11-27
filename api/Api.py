@@ -59,9 +59,7 @@ def predict_image(img_path, clf, PREDICTION_PATH):
             response.error = "FACE_NOT_FOUND"
             response.description = "No face found in the given image ..."
 
-    elif "predictions" in prediction and isinstance(prediction['predictions'], list) and len(
-            prediction["predictions"]) > 0:
-
+    elif "predictions" in prediction and isinstance(prediction['predictions'], list):
         # Manage success
         img_name = random_string() + ".png"
         log.debug("predict_image | Generated a random name: {}".format(img_name))
