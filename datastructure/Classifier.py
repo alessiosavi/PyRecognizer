@@ -146,8 +146,8 @@ class Classifier(object):
         self.classifier = MLPClassifier(max_iter=200)
         # Hyperparameter of the neural network (MLP) to tune
         parameter_space = {
-            'hidden_layer_sizes': [(200,),(100,200,100),(100,),],
-            #'activation': ['identity', 'tanh', 'relu'],
+            'hidden_layer_sizes': [(200,), (100, 200, 100), (100,), ],
+            # 'activation': ['identity', 'tanh', 'relu'],
             'activation': ['identity'],
             'solver': ['adam'],
             'learning_rate': ['constant'],
@@ -297,7 +297,7 @@ class Classifier(object):
         # Load image data in a numpy array
         try:
             log.debug("predict | Loading image {}".format(X_img_path))
-            X_img = load_image_file(X_img_path)
+            X_img, ratio = load_image_file(X_img_path)
         except OSError:
             log.error("predict | What have you uploaded ???")
             return -2, -2
@@ -307,8 +307,8 @@ class Classifier(object):
                 X_img, model="cnn")
         except RuntimeError:
             log.error(
-                "predict | Have not enough memory, unload data and retry")
-            return None, None
+                "predict | GPU does not have enough memory: FIXME unload data and retry")
+            return None, None, ratio
 
         log.debug("predict | Found {} face(s) for the given image".format(
             len(X_face_locations)))
@@ -316,7 +316,7 @@ class Classifier(object):
         # If no faces are found in the image, return an empty result.
         if len(X_face_locations) == 0:
             log.warning("predict | Seems that no faces was found :( ")
-            return -3, -3
+            return -3, -3, ratio
 
         # Find encodings for faces in the test iamge
         log.debug("predict | Encoding faces ...")
@@ -324,7 +324,7 @@ class Classifier(object):
         faces_encodings = face_recognition.face_encodings(
             X_img, known_face_locations=X_face_locations, num_jitters=100)
         log.debug("predict | Face encoded! | Let's ask to the neural network ...")
-        return faces_encodings, X_face_locations
+        return faces_encodings, X_face_locations, ratio
 
     # TODO: Add configuration parameter for choose the distance_threshold
     def predict(self, X_img_path, distance_threshold=0.45):
@@ -348,7 +348,7 @@ class Classifier(object):
         # In case of error, will be returned back an integer.
         # FIXME: manage gpu memory unload in case of None
         while faces_encodings is None or X_face_locations is None:
-            faces_encodings, X_face_locations = Classifier.extract_face_from_image(
+            faces_encodings, X_face_locations, ratio = Classifier.extract_face_from_image(
                 X_img_path)
             # In this case return back the error to the caller
             if isinstance(faces_encodings, int):
@@ -385,12 +385,32 @@ class Classifier(object):
                 else:
                     log.debug("predict | Pred: {} | Loc: {} | Score: {}".format(
                         person_score[0], loc, person_score[1]))
+                    if ratio < 1:
+                        log.debug("predict | Fixing face location")
+                        log.warn("Face location -> {} ".format(loc))
+                        log.warn("Face Type -> {} ".format(type(loc)))
+                        import math
+
+                        x1, y1, x2, y2 = loc
+                        # x1 = x1*ratio + x1
+                        # x2 = x2*ratio + x2
+                        # y1 = y1*ratio + y1
+                        # y2 = y2*ratio + y2
+                        ratio = math.pow(ratio,-1)
+                        x1 = x1*ratio#+ x1
+                        x2 = x2*ratio# + x2
+                        y1 = y1*ratio# + y1
+                        y2 = y2*ratio# + y2
+                        loc = x1, y1, x2, y2
+                        log.debug("predict | After fix | Pred: {} | Loc: {} | Score: {}".format(
+                            person_score[0], loc, person_score[1]))
+
                     _predictions.append((person_score[0], loc))
                     scores.append(person_score[1])
             log.debug("predict | Prediction: {}".format(_predictions))
             log.debug("predict | Score: {}".format(scores))
 
-        else:
+        if len(_predictions) == 0 or len(face_prediction) == 0:
             log.debug("predict | Face not recognized :/")
             return -1
 
