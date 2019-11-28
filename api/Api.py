@@ -58,6 +58,7 @@ def predict_image(img_path, clf, PREDICTION_PATH):
                 "predict_image | Seems that this face is related to nobody that i've seen before ...")
             response.error = "FACE_NOT_FOUND"
             response.description = "No face found in the given image ..."
+            
 
     elif "predictions" in prediction and isinstance(prediction['predictions'], list):
         # Manage success
