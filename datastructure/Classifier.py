@@ -347,6 +347,7 @@ class Classifier(object):
         # Resize image if necessary for avoid cuda-malloc error (important for low gpu)
         # In case of error, will be returned back an integer.
         # FIXME: manage gpu memory unload in case of None
+        ratio = 2
         while faces_encodings is None or X_face_locations is None:
             faces_encodings, X_face_locations, ratio = Classifier.extract_face_from_image(
                 X_img_path)
@@ -387,8 +388,8 @@ class Classifier(object):
                         person_score[0], loc, person_score[1]))
                     if ratio < 1:
                         log.debug("predict | Fixing face location")
-                        log.warn("Face location -> {} ".format(loc))
-                        log.warn("Face Type -> {} ".format(type(loc)))
+                        log.warning("Face location -> {} ".format(loc))
+                        log.warning("Face Type -> {} ".format(type(loc)))
                         import math
 
                         x1, y1, x2, y2 = loc
@@ -397,10 +398,10 @@ class Classifier(object):
                         # y1 = y1*ratio + y1
                         # y2 = y2*ratio + y2
                         ratio = math.pow(ratio,-1)
-                        x1 = x1*ratio#+ x1
-                        x2 = x2*ratio# + x2
-                        y1 = y1*ratio# + y1
-                        y2 = y2*ratio# + y2
+                        x1 *= ratio  #+ x1
+                        x2 *= ratio  # + x2
+                        y1 *= ratio  # + y1
+                        y2 *= ratio  # + y2
                         loc = x1, y1, x2, y2
                         log.debug("predict | After fix | Pred: {} | Loc: {} | Score: {}".format(
                             person_score[0], loc, person_score[1]))
