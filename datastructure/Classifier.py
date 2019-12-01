@@ -386,10 +386,9 @@ class Classifier(object):
                 else:
                     log.debug("predict | Pred: {} | Loc: {} | Score: {}".format(
                         person_score[0], loc, person_score[1]))
-                    if ratio < 1:
-                        log.debug("predict | Fixing face location")
+                    if ratio > 0:
+                        log.debug("predict | Fixing face location using ratio: {}".format(ratio))
                         log.warning("Face location -> {} ".format(loc))
-                        log.warning("Face Type -> {} ".format(type(loc)))
                         import math
 
                         x1, y1, x2, y2 = loc
@@ -397,7 +396,8 @@ class Classifier(object):
                         # x2 = x2*ratio + x2
                         # y1 = y1*ratio + y1
                         # y2 = y2*ratio + y2
-                        ratio = math.pow(ratio,-1)
+                        if ratio < 1:
+                            ratio = math.pow(ratio,-1)
                         x1 *= ratio  #+ x1
                         x2 *= ratio  # + x2
                         y1 *= ratio  # + y1
