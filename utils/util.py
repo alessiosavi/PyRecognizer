@@ -288,6 +288,7 @@ def load_image_file(file, mode='RGB',):
     w, h = width, height
     log = logging.getLogger()
 
+    ratio = -1
     # Ratio for resize the image
     log.debug("load_image_file | Image dimension: ({}:{})".format(w, h))
     # Resize in case of to bigger dimension
@@ -296,14 +297,19 @@ def load_image_file(file, mode='RGB',):
     elif 1600 <= width <= 3600:
         ratio = 1/3
     # TODO: Prettify the algorithm instead of set 800
-    else:
-        ratio=800
+    # Here the image will be saved as 800x800
+    elif width>3600:
         w = (800/width) * width
         h = (800/height) * height
+        ratio = width/w
+        log.debug("Dimension: w: {} | h: {}".format(w,h))
+        log.debug("new ratio -> {}".format(ratio))
 
-    if ratio != 800:
+    if 0 < ratio <1:
+        # Scale image in case of image < 1600
         w = width * ratio
         h = height * ratio
+
     if w != width:
         maxsize = (w, h)
         log.debug(
