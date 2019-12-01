@@ -289,7 +289,6 @@ def load_image_file(file, mode='RGB',):
     log = logging.getLogger()
 
     # Ratio for resize the image
-    ratio = 1
     log.debug("load_image_file | Image dimension: ({}:{})".format(w, h))
     # Resize in case of to bigger dimension
     if 1200 <= width <= 1600:

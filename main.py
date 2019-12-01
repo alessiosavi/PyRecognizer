@@ -8,7 +8,6 @@ import os
 import flask_monitoringdashboard as dashboard
 from flask import Flask, flash, jsonify, render_template, request, send_from_directory, session
 from flask_login import LoginManager, UserMixin, login_required, login_user, current_user
-from flask_sqlalchemy import SQLAlchemy
 from werkzeug.exceptions import abort
 from werkzeug.utils import redirect, secure_filename
 
@@ -31,8 +30,6 @@ SSL_ENABLED = CFG["network"]["SSL"]["enabled"]
 SECRET_KEY = str(base64.b64encode(bytes(os.urandom(24)))).encode()
 
 login_manager = LoginManager()
-db = SQLAlchemy()
-
 
 # ===== FLASK CONFIGURATION =====
 app = Flask(__name__, template_folder=CFG["network"]["templates"])
