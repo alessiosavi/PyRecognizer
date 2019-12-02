@@ -15,6 +15,7 @@ from sklearn.metrics import accuracy_score, balanced_accuracy_score, classificat
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.neural_network import MLPClassifier
 from tqdm import tqdm
+from math import pow
 
 from datastructure.Person import Person
 from utils.util import dump_dataset, load_image_file
@@ -386,25 +387,19 @@ class Classifier(object):
                 else:
                     log.debug("predict | Pred: {} | Loc: {} | Score: {}".format(
                         person_score[0], loc, person_score[1]))
-                    if ratio < 1:
-                        log.debug("predict | Fixing face location")
-                        log.warning("Face location -> {} ".format(loc))
-                        log.warning("Face Type -> {} ".format(type(loc)))
-                        import math
+                    if ratio > 0:
+                        log.debug(
+                            "predict | Fixing face location using ratio: {}".format(ratio))
 
                         x1, y1, x2, y2 = loc
-                        # x1 = x1*ratio + x1
-                        # x2 = x2*ratio + x2
-                        # y1 = y1*ratio + y1
-                        # y2 = y2*ratio + y2
-                        ratio = math.pow(ratio,-1)
-                        x1 *= ratio  #+ x1
-                        x2 *= ratio  # + x2
-                        y1 *= ratio  # + y1
-                        y2 *= ratio  # + y2
+                        # 1200 < size < 1600
+                        if ratio < 1:
+                            ratio = pow(ratio, -1)
+                        x1 *= ratio
+                        x2 *= ratio
+                        y1 *= ratio
+                        y2 *= ratio
                         loc = x1, y1, x2, y2
-                        log.debug("predict | After fix | Pred: {} | Loc: {} | Score: {}".format(
-                            person_score[0], loc, person_score[1]))
 
                     _predictions.append((person_score[0], loc))
                     scores.append(person_score[1])

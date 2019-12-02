@@ -13,10 +13,8 @@ from werkzeug.utils import redirect, secure_filename
 
 from api.Api import predict_image, train_network, tune_network
 from datastructure.Classifier import Classifier
+from datastructure.Administrator import Administrator
 from utils.util import init_main_data, random_string, secure_request
-
-# Hardcoded credentials for tune/train
-users = {'alessio@savi.com': 'secret','alessio':"password","admin":"admin"}
 
 # ===== LOAD CONFIGURATION FILE =====
 # TODO: Add argument/environment var parser for manage configuration file
@@ -36,9 +34,10 @@ app = Flask(__name__, template_folder=CFG["network"]["templates"])
 app.secret_key = SECRET_KEY
 # Used by flask when a upload is made
 app.config['UPLOAD_FOLDER'] = TMP_UPLOAD
+PUB_KEY = CFG["network"]["SSL"]["cert.pub"]
+PRIV_KEY = CFG["network"]["SSL"]["cert.priv"]
 
 # =====FLASK DASHBOARD CONFIGURATION =====
-
 dashboard.config.init_from(file=CFG["dashboard"]["config_file"])
 dashboard.bind(app, SECRET_KEY)
 
@@ -50,26 +49,9 @@ login_manager.login_view = "login"
 
 log.debug("Init classifier ...")
 
-PUB_KEY = CFG["network"]["SSL"]["cert.pub"]
-PRIV_KEY = CFG["network"]["SSL"]["cert.priv"]
-
 clf = Classifier()
 clf.model_path = CFG["classifier"]["model_path"]
 clf.load_classifier_from_file(CFG["classifier"]["timestamp"])
-
-
-class User(UserMixin):
-    pass
-
-
-@login_manager.user_loader
-def user_loader(email):
-    if email not in users:
-        return
-
-    user = User()
-    user.id = email
-    return user
 
 
 @app.route('/', methods=['GET'])
@@ -156,20 +138,46 @@ def uploaded_file(filename):
     return send_from_directory(TMP_UPLOAD_PREDICTION, filename)
 
 
+class User(UserMixin):
+    pass
+
+
+@login_manager.user_loader
+def user_loader(email):
+    user = Administrator("administrator",email,"dummypassword")
+    user.init_redis_connection()
+    user_exists = user.verify_user_exist()
+    user.redis_client.close()
+    if not user_exists:
+        return
+
+    user = User()
+    user.id = email
+    return user
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'GET':
         return render_template("login.html")
 
     email = request.form['email']
-    if request.form['password'] == users[email]:
-        user = User()
-        user.id = email
-        login_user(user)
-        log.debug("Logged in!")
-        return redirect('/train')
-
-    return 'Bad login'
+    password = request.form['password']
+    log.debug("Password in input -> {}".format(password))
+    # name (administrator) is not managed
+    admin = Administrator("administrator", email, password)
+    if not admin.init_redis_connection():
+        return "UNABLE_CONNECT_REDIS_DB"
+    authenticated = admin.verify_login(password)
+    admin.redis_client.close()
+    if not authenticated:
+        log.debug("Password is not valid!")
+        return "PASSWORD_NOT_VALID"
+    user = User()
+    user.id = email
+    login_user(user)
+    log.debug("Logged in!")
+    return redirect('/train')
 
 
 @app.route('/protected')
@@ -216,9 +224,9 @@ if __name__ == '__main__':
     app.jinja_env.autoescape = True
     if SSL_ENABLED:
         log.debug("main | RUNNING OVER SSL")
-        app.run(host=CFG["network"]["host"], port=CFG["network"]["port"], threaded=False, debug=True, use_reloader=False, ssl_context=(
+        app.run(host=CFG["network"]["host"], port=CFG["network"]["port"], threaded=False, debug=False, use_reloader=False, ssl_context=(
                 PUB_KEY, PRIV_KEY))
     else:
         log.debug("main | HTTPS DISABLED | RUNNING OVER HTTP")
         app.run(host=CFG["network"]["host"], port=CFG["network"]
-                ["port"], threaded=False, debug=True)
+                ["port"], threaded=False, debug=False)
