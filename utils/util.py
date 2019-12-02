@@ -288,6 +288,7 @@ def load_image_file(file, mode='RGB',):
     w, h = width, height
     log = logging.getLogger()
 
+    ratio = -1
     # Ratio for resize the image
     log.debug("load_image_file | Image dimension: ({}:{})".format(w, h))
     # Resize in case of to bigger dimension
@@ -295,19 +296,24 @@ def load_image_file(file, mode='RGB',):
         ratio = 1/2
     elif 1600 <= width <= 3600:
         ratio = 1/3
-    # TODO: Prettify the algorithm instead of set 800
-    else:
-        ratio=800
-        w = (800/width) * width
-        h = (800/height) * height
+    elif width > 3600:
+        ratio = width/800
+        log.debug("Dimension: w: {} | h: {}".format(w, h))
+        log.debug("new ratio -> {}".format(ratio))
 
-    if ratio != 800:
+    if 0 < ratio < 1:
+        # Scale image in case of width > 1600
         w = width * ratio
         h = height * ratio
+    elif ratio >1:
+        # Scale image in case of width > 3600
+        w = width / ratio
+        h = height / ratio
     if w != width:
+        # Check if scaling was applied
         maxsize = (w, h)
         log.debug(
-            "load_image_file | Image have to high dimension, avoiding memory error. Resizing to {}".format(maxsize))
+            "Image have to high dimension, avoiding memory error. Resizing to {}".format(maxsize))
         im.thumbnail(maxsize, PIL.Image.ANTIALIAS)
 
     if mode:

@@ -8,9 +8,12 @@ from datetime import datetime
 from logging import getLogger
 
 from datastructure.Response import Response
+from datastructure.Administrator import Administrator
 from utils.util import print_prediction_on_image, random_string, retrieve_dataset
 
 log = getLogger()
+
+
 
 
 def predict_image(img_path, clf, PREDICTION_PATH):
