@@ -298,14 +298,17 @@ def load_image_file(file, mode='RGB',):
         ratio = 1/3
     # TODO: Prettify the algorithm instead of set 800
     # Here the image will be saved as 800x800
-    elif width>3600:
-        w = (800/width) * width
-        h = (800/height) * height
-        ratio = width/w
-        log.debug("Dimension: w: {} | h: {}".format(w,h))
+    elif width > 3600:
+        #w = (800/width) * width
+        #h = (800/height) * height
+        #ratio = width/w
+        ratio = width/800
+        w = width / ratio
+        h = height / ratio
+        log.debug("Dimension: w: {} | h: {}".format(w, h))
         log.debug("new ratio -> {}".format(ratio))
 
-    if 0 < ratio <1:
+    if 0 < ratio < 1:
         # Scale image in case of image < 1600
         w = width * ratio
         h = height * ratio
