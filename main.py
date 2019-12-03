@@ -14,6 +14,7 @@ from werkzeug.utils import redirect, secure_filename
 from api.Api import predict_image, train_network, tune_network
 from datastructure.Classifier import Classifier
 from datastructure.Administrator import Administrator
+from datastructure.Response import Response
 from utils.util import init_main_data, random_string, secure_request
 
 # ===== LOAD CONFIGURATION FILE =====
@@ -74,10 +75,33 @@ def predict():
         log.warning("predict_api | No file choosed!")
         return redirect(request.url)  # Return to HTML page [GET]
     file = request.files['file']
+    treshold = request.form.get('treshold')
+    log.debug("Recived file [{}] and treshold [{}]".format(file,treshold))
+    try:
+        treshold = int(treshold)
+    except ValueError:
+        log.error("Unable to convert treshold")
+        response = Response()
+        response.error = "UNABLE_CAST_INT"
+        response.description = "Treshold is not an integer!"
+        response.status = "KO"
+        return jsonify(response=response.__dict__)
+    if not 0 <= treshold <= 100:
+        log.error("Treshold wrong value")
+        response = Response()
+        response.error = "TRESHOLD_ERROR_VALUE"
+        response.description = "Treshold have to be greater than 0 and lesser than 100!"
+        response.status = "KO"
+        return jsonify(response=response.__dict__)
+
+    treshold /= 100
+
+
+    log.debug("Recived file {} and treshold {}".format(file,treshold))
     filename = secure_filename(file.filename)
     img_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     file.save(img_path)
-    return jsonify(response=predict_image(img_path, clf, TMP_UPLOAD_PREDICTION))
+    return jsonify(response=predict_image(img_path, clf, TMP_UPLOAD_PREDICTION,treshold))
 
 
 @app.route('/train', methods=['GET'])

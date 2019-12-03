@@ -16,7 +16,7 @@ log = getLogger()
 
 
 
-def predict_image(img_path, clf, PREDICTION_PATH):
+def predict_image(img_path, clf, PREDICTION_PATH,treshold=45):
     """
 
     :param PREDICTION_PATH: global variable where image recognized are saved
@@ -30,7 +30,7 @@ def predict_image(img_path, clf, PREDICTION_PATH):
         prediction = None
     else:
         log.debug("predict_image | Predicting {}".format(img_path))
-        prediction = clf.predict(img_path)
+        prediction = clf.predict(img_path,treshold)
         log.debug("predict_image | Result: {}".format(prediction))
 
     # Manage error
@@ -132,3 +132,6 @@ def tune_network(folder_uncompress, zip_file, clf):
             response.description))
 
         return response.__dict__
+
+
+
