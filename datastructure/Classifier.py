@@ -120,6 +120,7 @@ class Classifier(object):
 
         X_train, x_test, Y_train, y_test = train_test_split(
             X, Y, test_size=0.25)
+
         log.debug("train | Training ...")
         self.classifier.fit(X_train, Y_train)
         log.debug("train | Model Trained!")
@@ -144,18 +145,18 @@ class Classifier(object):
 
         X_train, x_test, Y_train, y_test = train_test_split(
             X, Y, test_size=0.25)
-        self.classifier = MLPClassifier(max_iter=200)
+        self.classifier = MLPClassifier(max_iter=250)
         # Hyperparameter of the neural network (MLP) to tune
+        # Faces are encoded using 128 points
         parameter_space = {
-            'hidden_layer_sizes': [(200,), (100, 200, 100), (100,), ],
-            # 'activation': ['identity', 'tanh', 'relu'],
-            'activation': ['identity'],
+            'hidden_layer_sizes': [(128,), (200,), (200, 128,), ],
+            'activation': ['identity', 'tanh', 'relu'],
             'solver': ['adam'],
-            'learning_rate': ['constant'],
+            'learning_rate': ['constant', 'adaptive'],
         }
         log.debug("tuning | Parameter -> {}".format(pformat(parameter_space)))
         grid = GridSearchCV(self.classifier, parameter_space,
-                            cv=2, scoring='accuracy', verbose=20, n_jobs=None, pre_dispatch=1)
+                            cv=2, scoring='accuracy', verbose=20, n_jobs=8)
         grid.fit(X_train, Y_train)
         log.info("TUNING COMPLETE | DUMPING DATA!")
         # log.info("tuning | Grid Scores: {}".format(pformat(grid.grid_scores_)))

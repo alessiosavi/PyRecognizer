@@ -10,6 +10,9 @@
 <form enctype=multipart/form-data method=post>
     <input name=file type=file>
     <input type=submit value=Upload>
+    <br><br>
+    <label for="treshold">Treshold</label>
+    <input type="text" name="treshold"  value="45">
     <input name=_csrf_token type=hidden value="{{ csrf_token() }}">
 </form>
 {% with messages = get_flashed_messages() %}
