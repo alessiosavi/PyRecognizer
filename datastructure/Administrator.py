@@ -74,7 +74,7 @@ class Administrator(object):
             return False
 
         log.warning("Encrypting password -> {}".format(self.password))
-        self.password = self.encrypt_password(self.password)
+        self.password = self.encrypt_password(str(self.password))
         log.warning("Passwrod encrypted {}".format(self.password))
         self.redis_client.set(self.get_name(), self.password)
         log.warning("User {} registered!".format(self.get_name()))
@@ -99,7 +99,7 @@ class Administrator(object):
     def encrypt_password(self, plain_text_password: str) -> str:
         # Hash a password for the first time
         #   (Using bcrypt, the salt is saved into the hash itself)
-        return bcrypt.hashpw(plain_text_password.encode('utf-8'), bcrypt.gensalt())
+        return bcrypt.hashpw(plain_text_password, bcrypt.gensalt())
 
     def check_password(self, plain_text_password: str, hashed_password: str) -> bool:
         # Check hashed password. Using bcrypt, the salt is saved into the hash itself

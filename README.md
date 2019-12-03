@@ -347,6 +347,8 @@ The tool is powered with `Flask_MonitoringDashboard` that expose some useful uti
 - [Pillow](https://github.com/python-pillow/Pillow) The friendly PIL fork (Python Imaging Library)
 - [scikit-learn](https://github.com/scikit-learn/scikit-learn) Machine learning in Python
 
+***NOTE***: If you encounter an error during `pip install -r requirements.txt`, it's possible that you have not installed `cmake`. `dlib` need `cmake`, and you can install using `apt install cmake -y` (debian/ubuntu) or `yum install cmake -y` (CentOS/Fedora/RedHat).
+
 ## Table Of Contents
 
 - [PyRecognizer](#pyrecognizer)
