@@ -34,11 +34,10 @@ levels = {
 }
 
 
-def print_prediction_on_image(img_path, predictions, path_to_save, file_to_save):
+def print_prediction_on_image(img_path, predictions, file_to_save):
     """
     Shows the face recognition results visually.
 
-    :param path_to_save:
     :param file_to_save:
     :param img_path: path to image to be recognized
     :param predictions: results of the predict function
@@ -66,7 +65,7 @@ def print_prediction_on_image(img_path, predictions, path_to_save, file_to_save)
 
     # Display the resulting image
     # pil_image.show()
-    pil_image.save(os.path.join(path_to_save, file_to_save), "PNG")
+    pil_image.save(file_to_save, "PNG")
 
 
 def init_main_data(config_file):
@@ -84,10 +83,14 @@ def init_main_data(config_file):
     log = load_logger(CFG["logging"]["level"], CFG["logging"]
                       ["path"], CFG["logging"]["prefix"])
 
-    # NOTE: create a directory every time that you need to use this folder
+    # Store the image predicted drawing a boc in the face of the person
     TMP_UPLOAD_PREDICTION = CFG["PyRecognizer"]["temp_upload_predict"]
+    # Uncompress the images in this folder
     TMP_UPLOAD_TRAINING = CFG["PyRecognizer"]["temp_upload_training"]
+    # Save the images sent by the customer
     TMP_UPLOAD = CFG["PyRecognizer"]["temp_upload"]
+    # Save the images of unkown people for future clustering/labeling
+    TMP_UNKNOWN = CFG["PyRecognizer"]["temp_unknown"]
 
     if not os.path.exists(TMP_UPLOAD_PREDICTION):
         os.makedirs(TMP_UPLOAD_PREDICTION)
@@ -95,8 +98,10 @@ def init_main_data(config_file):
         os.makedirs(TMP_UPLOAD_TRAINING)
     if not os.path.exists(TMP_UPLOAD):
         os.makedirs(TMP_UPLOAD)
+    if not os.path.exists(TMP_UNKNOWN):
+        os.makedirs(TMP_UNKNOWN)
 
-    return CFG, log, TMP_UPLOAD_PREDICTION, TMP_UPLOAD_TRAINING, TMP_UPLOAD
+    return CFG, log, TMP_UPLOAD_PREDICTION, TMP_UPLOAD_TRAINING, TMP_UPLOAD, TMP_UNKNOWN
 
 
 def load_logger(level, path, name):
@@ -123,7 +128,7 @@ def load_logger(level, path, name):
     return logger
 
 
-def random_string(string_length=10):
+def random_string(string_length=13):
     """
     Generate a random string of fixed length
     :param string_length:
@@ -189,7 +194,7 @@ def dump_dataset(X, Y, path):
             "dump_dataset | Path {} ALREDY EXIST exist, avoiding to overwrite".format(path))
 
 
-def remove_dir(directory):
+def remove_dir(directory: str):
     """
     Wrapper for remove a directory
     :param directory:
@@ -253,7 +258,7 @@ def retrieve_dataset(folder_uncompress, zip_file, clf):
     return dataset
 
 
-def secure_request(request, ssl):
+def secure_request(request, ssl: bool):
     """
 
     :param ssl:
@@ -292,12 +297,15 @@ def load_image_file(file, mode='RGB',):
     # Ratio for resize the image
     log.debug("load_image_file | Image dimension: ({}:{})".format(w, h))
     # Resize in case of to bigger dimension
-    if 1200 <= width <= 1600:
+    if 1200 <= width <= 1600 or 1200 <= height <= 1600:
         ratio = 1/2
-    elif 1600 <= width <= 3600:
+    elif 1600 <= width <= 3600 or 1600 <= height <= 3600:
         ratio = 1/3
-    elif width > 3600:
-        ratio = width/800
+    elif width > 3600 or height > 3600:
+        if width > height:
+            ratio = width/800
+        else:
+            ratio = height/800
         log.debug("Dimension: w: {} | h: {}".format(w, h))
         log.debug("new ratio -> {}".format(ratio))
 
@@ -305,7 +313,7 @@ def load_image_file(file, mode='RGB',):
         # Scale image in case of width > 1600
         w = width * ratio
         h = height * ratio
-    elif ratio >1:
+    elif ratio > 1:
         # Scale image in case of width > 3600
         w = width / ratio
         h = height / ratio

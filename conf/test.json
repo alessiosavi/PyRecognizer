@@ -3,7 +3,8 @@
     "Version": "0.2.1",
     "temp_upload_training": "uploads/training/",
     "temp_upload_predict": "uploads/predict/",
-    "temp_upload": "uploads/upload"
+    "temp_upload": "uploads/upload",
+    "temp_unknown": "uploads/unknown"
   },
   "logging": {
     "path": "log/",
@@ -14,8 +15,9 @@
     "host": "0.0.0.0",
     "port": 8081,
     "templates": "api/templates/",
+    "csrf_protection": false,
     "SSL": {
-      "enabled": true,
+      "enabled": false,
       "cert.pub": "conf/ssl/localhost.crt",
       "cert.priv": "conf/ssl/localhost.key"
     }
@@ -24,9 +26,6 @@
     "trainin_dir": "dataset/images/",
     "model_path": "dataset/model/",
     "timestamp": "20191202_153034"
-  },
-  "data": {
-    "test_data": "/tmp/test_data/"
   },
   "dashboard": {
     "config_file": "conf/dashboard.ini"

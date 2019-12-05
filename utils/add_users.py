@@ -1,9 +1,9 @@
 """
 Generate the administrator of the neural network, delegated to train/tune the model
 """
+from datastructure.Administrator import Administrator
 import sys
 sys.path.insert(0, "../")
-from datastructure.Administrator import Administrator
 
 # Creating a new administrator with the following credentials
 a = Administrator("name", "mail", "password")

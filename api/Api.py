@@ -6,6 +6,9 @@ Custom function that will be wrapped for be HTTP compliant
 import time
 from datetime import datetime
 from logging import getLogger
+import os
+import shutil
+import datetime
 
 from datastructure.Response import Response
 from datastructure.Administrator import Administrator
@@ -14,9 +17,7 @@ from utils.util import print_prediction_on_image, random_string, retrieve_datase
 log = getLogger()
 
 
-
-
-def predict_image(img_path, clf, PREDICTION_PATH,treshold=45):
+def predict_image(img_path, clf, PREDICTION_PATH, TMP_UNKNOWN, treshold=45):
     """
 
     :param PREDICTION_PATH: global variable where image recognized are saved
@@ -30,7 +31,7 @@ def predict_image(img_path, clf, PREDICTION_PATH,treshold=45):
         prediction = None
     else:
         log.debug("predict_image | Predicting {}".format(img_path))
-        prediction = clf.predict(img_path,treshold)
+        prediction = clf.predict(img_path, treshold)
         log.debug("predict_image | Result: {}".format(prediction))
 
     # Manage error
@@ -48,6 +49,18 @@ def predict_image(img_path, clf, PREDICTION_PATH,treshold=45):
             response.description = "Seems that this face is related to nobody that i've seen before ..."
             response.status = "KO"
             log.error("predict_image | Face not recognized ...")
+            
+            # Saving unkown faces for future clustering
+            now = str(datetime.datetime.now())[:23]
+            now = now.replace(":","_")
+            now = now.replace(".","_")
+            head,tail = os.path.split(img_path)
+            filename, file_extension = os.path.splitext(tail)
+            filename = filename + "__"+now+file_extension
+            filename = os.path.join(TMP_UNKNOWN,filename)
+            log.info("Image not recognized, saving it in: {}".format(filename))
+            shutil.copy(img_path,filename)
+
 
         elif prediction == -2:
             response.error = "FILE_NOT_VALID"
@@ -61,15 +74,21 @@ def predict_image(img_path, clf, PREDICTION_PATH,treshold=45):
                 "predict_image | Seems that this face is related to nobody that i've seen before ...")
             response.error = "FACE_NOT_FOUND"
             response.description = "No face found in the given image ..."
-            
-
+    # Manage success
     elif "predictions" in prediction and isinstance(prediction['predictions'], list):
-        # Manage success
-        img_name = random_string() + ".png"
+        # Be sure to don't overwrite an existing image
+        exists = True
+        while exists:
+            # img_name = os.path.join(PREDICTION_PATH, random_string() + ".png"
+            img_name = random_string() + ".png"
+            img_file_name = os.path.join(PREDICTION_PATH, img_name)
+            if not os.path.exists(img_file_name):
+                exists = False
+
         log.debug("predict_image | Generated a random name: {}".format(img_name))
         log.debug("predict_image | Printing prediction on image ...")
         print_prediction_on_image(
-            img_path, prediction["predictions"], PREDICTION_PATH, img_name)
+            img_path, prediction["predictions"], img_file_name)
 
         # response.error = "FACE_FOUND"
         # response.description = "/uploads/"+img_name
@@ -132,6 +151,3 @@ def tune_network(folder_uncompress, zip_file, clf):
             response.description))
 
         return response.__dict__
-
-
-

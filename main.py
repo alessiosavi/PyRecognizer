@@ -21,10 +21,12 @@ from utils.util import init_main_data, random_string, secure_request
 # TODO: Add argument/environment var parser for manage configuration file
 CONFIG_FILE = "conf/test.json"
 
-CFG, log, TMP_UPLOAD_PREDICTION, TMP_UPLOAD_TRAINING, TMP_UPLOAD = init_main_data(
+CFG, log, TMP_UPLOAD_PREDICTION, TMP_UPLOAD_TRAINING, TMP_UPLOAD, TMP_UNKNOWN = init_main_data(
     CONFIG_FILE)
 
 SSL_ENABLED = CFG["network"]["SSL"]["enabled"]
+# Disable CSRF protection for if you need to use as REST server instead of use the GUI
+ENABLE_CSRF = CFG["network"]["csrf_protection"]
 # $(base64 /dev/urandom  | head -n 1 | md5sum | awk '{print $1}')
 SECRET_KEY = str(base64.b64encode(bytes(os.urandom(24)))).encode()
 
@@ -37,6 +39,13 @@ app.secret_key = SECRET_KEY
 app.config['UPLOAD_FOLDER'] = TMP_UPLOAD
 PUB_KEY = CFG["network"]["SSL"]["cert.pub"]
 PRIV_KEY = CFG["network"]["SSL"]["cert.priv"]
+
+if not os.path.isfile(PUB_KEY) or not os.path.isfile(PRIV_KEY):
+    log.error(
+        "Unable to find certs file, be sure that the following certs exists, disabling SSL")
+    log.warning("Public key: {}".format(PUB_KEY))
+    log.warning("Private key: {}".format(PRIV_KEY))
+    SSL_ENABLED = False
 
 # =====FLASK DASHBOARD CONFIGURATION =====
 dashboard.config.init_from(file=CFG["dashboard"]["config_file"])
@@ -76,16 +85,20 @@ def predict():
         return redirect(request.url)  # Return to HTML page [GET]
     file = request.files['file']
     treshold = request.form.get('treshold')
-    log.debug("Recived file [{}] and treshold [{}]".format(file,treshold))
-    try:
-        treshold = int(treshold)
-    except ValueError:
-        log.error("Unable to convert treshold")
-        response = Response()
-        response.error = "UNABLE_CAST_INT"
-        response.description = "Treshold is not an integer!"
-        response.status = "KO"
-        return jsonify(response=response.__dict__)
+    log.debug("Recived file [{}] and treshold [{}]".format(file, treshold))
+    if treshold == None or  len(treshold) == 0:
+        log.warning("Treshold not provided, using 45 as default")
+        treshold = 45
+    else:
+        try:
+            treshold = int(treshold)
+        except ValueError:
+            log.error("Unable to convert treshold")
+            response = Response()
+            response.error = "UNABLE_CAST_I  NT"
+            response.description = "Treshold is not an integer!"
+            response.status = "KO"
+            return jsonify(response=response.__dict__)
     if not 0 <= treshold <= 100:
         log.error("Treshold wrong value")
         response = Response()
@@ -96,12 +109,11 @@ def predict():
 
     treshold /= 100
 
-
-    log.debug("Recived file {} and treshold {}".format(file,treshold))
+    log.debug("Recived file {} and treshold {}".format(file, treshold))
     filename = secure_filename(file.filename)
     img_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     file.save(img_path)
-    return jsonify(response=predict_image(img_path, clf, TMP_UPLOAD_PREDICTION,treshold))
+    return jsonify(response=predict_image(img_path, clf, TMP_UPLOAD_PREDICTION, TMP_UNKNOWN, treshold))
 
 
 @app.route('/train', methods=['GET'])
@@ -159,7 +171,9 @@ def uploaded_file(filename):
     :param filename:
     :return:
     """
-    return send_from_directory(TMP_UPLOAD_PREDICTION, filename)
+    if  os.path.exists(os.path.join(TMP_UPLOAD_PREDICTION, filename)):
+        return send_from_directory(TMP_UPLOAD_PREDICTION, filename)
+    return "PHOTOS_NOT_FOUND"
 
 
 class User(UserMixin):
@@ -168,7 +182,7 @@ class User(UserMixin):
 
 @login_manager.user_loader
 def user_loader(email):
-    user = Administrator("administrator",email,"dummypassword")
+    user = Administrator("administrator", email, "dummypassword")
     user.init_redis_connection()
     user_exists = user.verify_user_exist()
     user.redis_client.close()
@@ -216,11 +230,12 @@ def csrf_protect():
     Validate csrf token against the one in session
     :return:
     """
-    if "dashboard" not in str(request.url_rule):
-        if request.method == "POST":
-            token = session.pop('_csrf_token', None)
-            if not token or token != request.form.get('_csrf_token'):
-                abort(403)
+    if ENABLE_CSRF:
+        if "dashboard" not in str(request.url_rule):
+            if request.method == "POST":
+                token = session.pop('_csrf_token', None)
+                if not token or token != request.form.get('_csrf_token'):
+                    abort(403)
 
 
 @app.after_request
