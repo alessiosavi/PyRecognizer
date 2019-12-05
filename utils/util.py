@@ -19,6 +19,7 @@ import random
 import shutil
 import string
 import zipfile
+import filecmp
 from logging.handlers import TimedRotatingFileHandler
 
 import PIL
@@ -327,3 +328,23 @@ def load_image_file(file, mode='RGB',):
     if mode:
         im = im.convert(mode)
     return np.array(im), ratio
+
+
+def find_duplicates(directory: str):
+    log = logging.getLogger()
+    # List files in the directory
+    files = []
+    for _file in os.listdir(directory):
+        files.append(_file)
+
+    equals = []
+    for i in range(len(files)):
+        equal = False
+        for j in range(i+1, len(files)):
+            if filecmp.cmp(os.path.join(directory, files[i]), os.path.join(directory, files[j])):
+                equals.append(os.path.join(directory, files[i]))
+                break
+    log.info("Removing the following duplicates files: {}".format(equals))
+    for _file in equals:
+        print("Removing file: {}".format(_file))
+        os.remove(_file)

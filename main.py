@@ -4,6 +4,8 @@ PyRecognizer loader
 """
 import base64
 import os
+import signal
+import sys
 
 import flask_monitoringdashboard as dashboard
 from flask import Flask, flash, jsonify, render_template, request, send_from_directory, session
@@ -15,7 +17,7 @@ from api.Api import predict_image, train_network, tune_network
 from datastructure.Classifier import Classifier
 from datastructure.Administrator import Administrator
 from datastructure.Response import Response
-from utils.util import init_main_data, random_string, secure_request
+from utils.util import init_main_data, random_string, secure_request, find_duplicates
 
 # ===== LOAD CONFIGURATION FILE =====
 # TODO: Add argument/environment var parser for manage configuration file
@@ -86,7 +88,7 @@ def predict():
     file = request.files['file']
     treshold = request.form.get('treshold')
     log.debug("Recived file [{}] and treshold [{}]".format(file, treshold))
-    if treshold == None or  len(treshold) == 0:
+    if treshold == None or len(treshold) == 0:
         log.warning("Treshold not provided, using 45 as default")
         treshold = 45
     else:
@@ -171,7 +173,7 @@ def uploaded_file(filename):
     :param filename:
     :return:
     """
-    if  os.path.exists(os.path.join(TMP_UPLOAD_PREDICTION, filename)):
+    if os.path.exists(os.path.join(TMP_UPLOAD_PREDICTION, filename)):
         return send_from_directory(TMP_UPLOAD_PREDICTION, filename)
     return "PHOTOS_NOT_FOUND"
 
@@ -255,6 +257,16 @@ def generate_csrf_token():
     if '_csrf_token' not in session:
         session['_csrf_token'] = random_string()
     return session['_csrf_token']
+
+
+def signal_handler(signal, frame):
+    find_duplicates(TMP_UPLOAD)
+    find_duplicates(TMP_UPLOAD_PREDICTION)
+    find_duplicates(TMP_UNKNOWN)
+    sys.exit(0)
+
+
+signal.signal(signal.SIGINT, signal_handler)
 
 
 app.jinja_env.globals['csrf_token'] = generate_csrf_token
