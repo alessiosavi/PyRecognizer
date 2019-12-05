@@ -207,9 +207,10 @@ def remove_dir(directory: str):
         shutil.rmtree(directory)
 
 
-def verify_extension(file):
+def verify_extension(folder, file):
     """
     Wrapper for validate file
+    :param folder:
     :param file:
     :return:
     """
@@ -218,12 +219,14 @@ def verify_extension(file):
     log.debug("verify_extension | File: {} | Ext: {}".format(file, extension))
 
     if extension == ".zip":
-        zp = zipfile.ZipFile(file)
+        log.info("Verifying zip bomb ...")
+        zp = zipfile.ZipFile(os.path.join(folder, file))
         size = sum([zinfo.file_size for zinfo in zp.filelist])
         zip_kb = float(size)/(1000*1000)  # MB
-        if zip_kb > 1000:
-            raise Exception("Zip file size is to much ...")
-        return "zip"
+        if zip_kb > 250:
+            log.error("ZIP BOMB DETECTED!")
+            #raise Exception("Zip file size is to much ...")
+            return "ZIP_BOMB!"
 
     elif extension == ".dat":
         # Photos have been alredy analyzed, dataset is ready!
@@ -231,7 +234,7 @@ def verify_extension(file):
     return None
 
 
-def retrieve_dataset(folder_uncompress, zip_file, clf):
+def retrieve_dataset(folder_uncompress,  zip_file, clf):
     """
 
     :param folder_uncompress:
@@ -241,7 +244,7 @@ def retrieve_dataset(folder_uncompress, zip_file, clf):
     """
     log = logging.getLogger()
     log.debug("retrieve_dataset | Parsing dataset ...")
-    check = verify_extension(zip_file.filename)
+    check = verify_extension(folder_uncompress, zip_file.filename)
     if check == "zip":  # Image provided
         log.debug("retrieve_dataset | Zip file uploaded")
         folder_name = unzip_data(folder_uncompress, zip_file)
@@ -339,7 +342,6 @@ def find_duplicates(directory: str):
 
     equals = []
     for i in range(len(files)):
-        equal = False
         for j in range(i+1, len(files)):
             if filecmp.cmp(os.path.join(directory, files[i]), os.path.join(directory, files[j])):
                 equals.append(os.path.join(directory, files[i]))

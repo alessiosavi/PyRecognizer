@@ -88,7 +88,7 @@ def predict():
     file = request.files['file']
     treshold = request.form.get('treshold')
     log.debug("Recived file [{}] and treshold [{}]".format(file, treshold))
-    if treshold == None or len(treshold) == 0:
+    if treshold is None or len(treshold) == 0:
         log.warning("Treshold not provided, using 45 as default")
         treshold = 45
     else:
@@ -139,6 +139,7 @@ def train_http():
         flash('No file choosed :/', category="error")
         return redirect(request.url)  # Return to HTML page [GET]
     file = request.files['file']
+    file.save(os.path.join(TMP_UPLOAD_TRAINING, file.filename))
     return jsonify(train_network(TMP_UPLOAD_TRAINING, file, clf))
 
 
@@ -163,6 +164,7 @@ def tune_http():
         flash('No file choosed :/', category="error")
         return redirect(request.url)  # Return to HTML page [GET]
     file = request.files['file']
+    file.save(os.path.join(TMP_UPLOAD_TRAINING, file.filename))
     return jsonify(tune_network(TMP_UPLOAD_TRAINING, file, clf))
 
 
@@ -270,9 +272,10 @@ signal.signal(signal.SIGINT, signal_handler)
 
 
 app.jinja_env.globals['csrf_token'] = generate_csrf_token
+app.jinja_env.autoescape = True
+
 
 if __name__ == '__main__':
-    app.jinja_env.autoescape = True
     if SSL_ENABLED:
         log.debug("main | RUNNING OVER SSL")
         app.run(host=CFG["network"]["host"], port=CFG["network"]["port"], threaded=False, debug=False, use_reloader=False, ssl_context=(

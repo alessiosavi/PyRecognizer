@@ -3,15 +3,13 @@
 Custom function that will be wrapped for be HTTP compliant
 """
 
+import os
+import shutil
 import time
 from datetime import datetime
 from logging import getLogger
-import os
-import shutil
-import datetime
 
 from datastructure.Response import Response
-from datastructure.Administrator import Administrator
 from utils.util import print_prediction_on_image, random_string, retrieve_dataset
 
 log = getLogger()
@@ -20,6 +18,8 @@ log = getLogger()
 def predict_image(img_path, clf, PREDICTION_PATH, TMP_UNKNOWN, treshold=45):
     """
 
+    :param TMP_UNKNOWN:
+    :param treshold:
     :param PREDICTION_PATH: global variable where image recognized are saved
     :param img_path: image that have to be predicted
     :param clf: classifier in charge to predict the image
@@ -49,18 +49,17 @@ def predict_image(img_path, clf, PREDICTION_PATH, TMP_UNKNOWN, treshold=45):
             response.description = "Seems that this face is related to nobody that i've seen before ..."
             response.status = "KO"
             log.error("predict_image | Face not recognized ...")
-            
+
             # Saving unkown faces for future clustering
-            now = str(datetime.datetime.now())[:23]
-            now = now.replace(":","_")
-            now = now.replace(".","_")
-            head,tail = os.path.split(img_path)
+            now = str(datetime.now())[:23]
+            now = now.replace(":", "_")
+            now = now.replace(".", "_")
+            head, tail = os.path.split(img_path)
             filename, file_extension = os.path.splitext(tail)
             filename = filename + "__"+now+file_extension
-            filename = os.path.join(TMP_UNKNOWN,filename)
+            filename = os.path.join(TMP_UNKNOWN, filename)
             log.info("Image not recognized, saving it in: {}".format(filename))
-            shutil.copy(img_path,filename)
-
+            shutil.copy(img_path, filename)
 
         elif prediction == -2:
             response.error = "FILE_NOT_VALID"
@@ -125,7 +124,7 @@ def train_network(folder_uncompress, zip_file, clf):
         return response.__dict__
 
 
-def tune_network(folder_uncompress, zip_file, clf):
+def tune_network(folder_uncompress,  zip_file, clf):
     """
     Train a new neural model with the zip file provided
     :param folder_uncompress:
@@ -134,7 +133,7 @@ def tune_network(folder_uncompress, zip_file, clf):
     :return:
     """
     log.debug("tune_network | Starting tuning phase ...")
-    dataset = retrieve_dataset(folder_uncompress, zip_file, clf)
+    dataset = retrieve_dataset(folder_uncompress,  zip_file, clf)
 
     if dataset is None:
         return Response(error="ERROR DURING LOADING DAT", description="Seems that the dataset is not valid").__dict__

@@ -1,11 +1,8 @@
-import os
-import binascii
-import hashlib
 import logging
-import redis
-from crypt import crypt, METHOD_SHA512
 from sys import exit
+
 import bcrypt
+import redis
 
 log = logging.getLogger()
 log.setLevel(logging.DEBUG)
@@ -26,7 +23,6 @@ class Administrator(object):
     def init_redis_connection(self, host: str = "localhost", port: str = "6379", db: int = 0) -> bool:
         log.warning("Initializing a new redis connection")
         self.redis_client = redis.Redis(host=host, port=port, db=db)
-        healt_check = False
         try:
             healt_check = self.redis_client.ping()
         except redis.exceptions.ConnectionError:
@@ -34,7 +30,8 @@ class Administrator(object):
             log.warning("Connection not estabilished!")
         return healt_check
 
-    def validate_password(self, password) -> bool:
+    @staticmethod
+    def validate_password(password) -> bool:
         if len(password) < 5:
             log.warning(
                 "Password not valid | Password have to be more than 5 characters long")
@@ -55,7 +52,7 @@ class Administrator(object):
         """
         alredy_exists = self.retrieve_password()
         # Be sure that user does not exists
-        return not alredy_exists == None
+        return not alredy_exists is None
 
     def remove_user(self) -> bool:
         if not self.verify_user_exist():
@@ -96,12 +93,14 @@ class Administrator(object):
         # return self.name+":"+self.mail
         return self.mail
 
-    def encrypt_password(self, plain_text_password: str) -> str:
+    @staticmethod
+    def encrypt_password(plain_text_password: str) -> str:
         # Hash a password for the first time
         #   (Using bcrypt, the salt is saved into the hash itself)
         return bcrypt.hashpw(plain_text_password, bcrypt.gensalt())
 
-    def check_password(self, plain_text_password: str, hashed_password: str) -> bool:
+    @staticmethod
+    def check_password(plain_text_password: str, hashed_password: str) -> bool:
         # Check hashed password. Using bcrypt, the salt is saved into the hash itself
         log.warning("Comparing plain: {} with hashed {}".format(
             plain_text_password, hashed_password))
