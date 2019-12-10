@@ -272,13 +272,15 @@ def secure_request(request, ssl: bool):
     # request.headers['Content-Security-Policy'] = "script-src 'self' cdnjs.cloudflare.com ; "
     request.headers['Feature-Policy'] = "geolocation 'none'; microphone 'none'; camera 'self'"
     request.headers['Referrer-Policy'] = 'no-referrer'
-    request.headers['Strict-Transport-Security'] = "max-age=60; includeSubDomains; preload"
     request.headers['x-frame-options'] = 'SAMEORIGIN'
     request.headers['X-Content-Type-Options'] = 'nosniff'
     request.headers['X-Permitted-Cross-Domain-Policies'] = 'none'
     request.headers['X-XSS-Protection'] = '1; mode=block'
     if ssl:
         request.headers['expect-ct'] = 'max-age=60, enforce'
+        request.headers["Content-Security-Policy"] = "upgrade-insecure-requests"
+        request.headers['Strict-Transport-Security'] = "max-age=60; includeSubDomains; preload"
+
 
     return request
 
@@ -301,17 +303,20 @@ def load_image_file(file, mode='RGB',):
     # Ratio for resize the image
     log.debug("load_image_file | Image dimension: ({}:{})".format(w, h))
     # Resize in case of to bigger dimension
-    if 1200 <= width <= 1600 or 1200 <= height <= 1600:
-        ratio = 1/2
-    elif 1600 <= width <= 3600 or 1600 <= height <= 3600:
-        ratio = 1/3
-    elif width > 3600 or height > 3600:
+    # In first instance manage the HIGH-Dimension photos
+    if width > 3600 or height > 3600:
         if width > height:
             ratio = width/800
         else:
             ratio = height/800
-        log.debug("Dimension: w: {} | h: {}".format(w, h))
-        log.debug("new ratio -> {}".format(ratio))
+
+    elif 1200 <= width <= 1600 or 1200 <= height <= 1600:
+        ratio = 1/2
+    elif 1600 <= width <= 3600 or 1600 <= height <= 3600:
+        ratio = 1/3
+
+    log.debug("Dimension: w: {} | h: {}".format(w, h))
+    log.debug("new ratio -> {}".format(ratio))
 
     if 0 < ratio < 1:
         # Scale image in case of width > 1600

@@ -305,6 +305,7 @@ class Classifier(object):
             return -2, -2
         log.debug("predict | Extracting faces locations ...")
         try:
+            # TODO: Reduce size of the image at every iteration
             X_face_locations = face_recognition.face_locations(
                 X_img, model="cnn")
         except RuntimeError:
@@ -328,7 +329,6 @@ class Classifier(object):
         log.debug("predict | Face encoded! | Let's ask to the neural network ...")
         return faces_encodings, X_face_locations, ratio
 
-    # TODO: Add configuration parameter for choose the distance_threshold
     def predict(self, X_img_path, distance_threshold=0.45):
         """
         Recognizes faces in given image using a trained KNN classifier
