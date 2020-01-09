@@ -227,6 +227,7 @@ def verify_extension(folder, file):
             log.error("ZIP BOMB DETECTED!")
             #raise Exception("Zip file size is to much ...")
             return "ZIP_BOMB!"
+        return "zip"
 
     elif extension == ".dat":
         # Photos have been alredy analyzed, dataset is ready!

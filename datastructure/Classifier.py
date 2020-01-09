@@ -302,12 +302,12 @@ class Classifier(object):
             X_img, ratio = load_image_file(X_img_path)
         except OSError:
             log.error("predict | What have you uploaded ???")
-            return -2, -2
+            return -2, -2, -1
         log.debug("predict | Extracting faces locations ...")
         try:
             # TODO: Reduce size of the image at every iteration
             X_face_locations = face_recognition.face_locations(
-                X_img, model="cnn")
+                X_img, model="hog") # model="cnn")
         except RuntimeError:
             log.error(
                 "predict | GPU does not have enough memory: FIXME unload data and retry")
@@ -325,7 +325,7 @@ class Classifier(object):
         log.debug("predict | Encoding faces ...")
         # num_jitters increase the distortion check
         faces_encodings = face_recognition.face_encodings(
-            X_img, known_face_locations=X_face_locations, num_jitters=100)
+            X_img, known_face_locations=X_face_locations, num_jitters=1)
         log.debug("predict | Face encoded! | Let's ask to the neural network ...")
         return faces_encodings, X_face_locations, ratio
 
