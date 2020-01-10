@@ -97,7 +97,7 @@ class Administrator(object):
     def encrypt_password(plain_text_password: str) -> str:
         # Hash a password for the first time
         #   (Using bcrypt, the salt is saved into the hash itself)
-        return bcrypt.hashpw(plain_text_password, bcrypt.gensalt())
+        return bcrypt.hashpw(plain_text_password.encode('utf-8'), bcrypt.gensalt())
 
     @staticmethod
     def check_password(plain_text_password: str, hashed_password: str) -> bool:
