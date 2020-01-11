@@ -1,12 +1,13 @@
-Flask_Login==0.2.9
+Cython
+numpy==1.17.4
+flask-login==0.4.1
 face_recognition==1.2.3
 redis==3.3.11
 Flask_MonitoringDashboard==3.0.5
 Flask==1.1.1
-numpy==1.17.4
-tqdm==4.39.0
+tqdm==4.40.2
 Werkzeug==0.16.0
 olefile==0.46
-Pillow==6.2.1
+Pillow==7.0.0
 py-bcrypt==0.4
 scikit_learn==0.21.3

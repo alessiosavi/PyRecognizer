@@ -14,16 +14,15 @@ from werkzeug.exceptions import abort
 from werkzeug.utils import redirect, secure_filename
 
 from api.Api import predict_image, train_network, tune_network
-from datastructure.Classifier import Classifier
 from datastructure.Administrator import Administrator
+from datastructure.Classifier import Classifier
 from datastructure.Response import Response
 from utils.util import init_main_data, random_string, secure_request, find_duplicates
 
 # ===== LOAD CONFIGURATION FILE =====
-# TODO: Add argument/environment var parser for manage configuration file
-CONFIG_FILE = "conf/test.json"
+CONFIG_FILE = "conf/conf.json"
 
-CFG, log, TMP_UPLOAD_PREDICTION, TMP_UPLOAD_TRAINING, TMP_UPLOAD, TMP_UNKNOWN = init_main_data(
+CFG, log, TMP_UPLOAD_PREDICTION, TMP_UPLOAD_TRAINING, TMP_UPLOAD, TMP_UNKNOWN, DETECTION_MODEL, JITTER = init_main_data(
     CONFIG_FILE)
 
 SSL_ENABLED = CFG["network"]["SSL"]["enabled"]
@@ -82,40 +81,41 @@ def predict():
     """
     # check if the post request has the file part
     if 'file' not in request.files or request.files['file'].filename == '':
-        flash('No file choosed :/', category="error")
-        log.warning("predict_api | No file choosed!")
+        flash('No file choose :/', category="error")
+        log.warning("predict_api | No file choose!")
         return redirect(request.url)  # Return to HTML page [GET]
     file = request.files['file']
-    treshold = request.form.get('treshold')
-    log.debug("Recived file [{}] and treshold [{}]".format(file, treshold))
-    if treshold is None or len(treshold) == 0:
-        log.warning("Treshold not provided, using 45 as default")
-        treshold = 45
+    threshold = request.form.get('threshold')
+    log.debug("Received file [{}] and threshold [{}]".format(file, threshold))
+    if threshold is None or len(threshold) == 0:
+        log.warning("Threshold not provided, using 45 as default")
+        threshold = 45
     else:
         try:
-            treshold = int(treshold)
+            threshold = int(threshold)
         except ValueError:
-            log.error("Unable to convert treshold")
+            log.error("Unable to convert threshold")
             response = Response()
             response.error = "UNABLE_CAST_I  NT"
-            response.description = "Treshold is not an integer!"
+            response.description = "Threshold is not an integer!"
             response.status = "KO"
             return jsonify(response=response.__dict__)
-    if not 0 <= treshold <= 100:
-        log.error("Treshold wrong value")
+    if not 0 <= threshold <= 100:
+        log.error("Threshold wrong value")
         response = Response()
-        response.error = "TRESHOLD_ERROR_VALUE"
-        response.description = "Treshold have to be greater than 0 and lesser than 100!"
+        response.error = "THRESHOLD_ERROR_VALUE"
+        response.description = "Threshold have to be greater than 0 and lesser than 100!"
         response.status = "KO"
         return jsonify(response=response.__dict__)
 
-    treshold /= 100
+    threshold /= 100
 
-    log.debug("Recived file {} and treshold {}".format(file, treshold))
+    log.debug("Received file {} and threshold {}".format(file, threshold))
     filename = secure_filename(file.filename)
     img_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     file.save(img_path)
-    return jsonify(response=predict_image(img_path, clf, TMP_UPLOAD_PREDICTION, TMP_UNKNOWN, treshold))
+    return jsonify(
+        response=predict_image(img_path, clf, TMP_UPLOAD_PREDICTION, TMP_UNKNOWN, DETECTION_MODEL, JITTER, threshold))
 
 
 @app.route('/train', methods=['GET'])
@@ -136,7 +136,7 @@ def train_http():
     """
     # check if the post request has the file part
     if 'file' not in request.files or request.files['file'].filename == '':
-        flash('No file choosed :/', category="error")
+        flash('No file choose :/', category="error")
         return redirect(request.url)  # Return to HTML page [GET]
     file = request.files['file']
     file.save(os.path.join(TMP_UPLOAD_TRAINING, file.filename))
@@ -161,7 +161,7 @@ def tune_http():
     """
     # check if the post request has the file part
     if 'file' not in request.files or request.files['file'].filename == '':
-        flash('No file choosed :/', category="error")
+        flash('No file choose :/', category="error")
         return redirect(request.url)  # Return to HTML page [GET]
     file = request.files['file']
     file.save(os.path.join(TMP_UPLOAD_TRAINING, file.filename))
@@ -245,7 +245,7 @@ def csrf_protect():
 @app.after_request
 def secure_headers(response):
     """
-    Apply securiy headers to the response call
+    Apply security headers to the response call
     :return:
     """
     return secure_request(response, SSL_ENABLED)
@@ -253,7 +253,7 @@ def secure_headers(response):
 
 def generate_csrf_token():
     """
-    Generate a randome string and set the data into session
+    Generate a random string and set the data into session
     :return:
     """
     if '_csrf_token' not in session:
@@ -270,17 +270,16 @@ def signal_handler(signal, frame):
 
 signal.signal(signal.SIGINT, signal_handler)
 
-
 app.jinja_env.globals['csrf_token'] = generate_csrf_token
 app.jinja_env.autoescape = True
-
 
 if __name__ == '__main__':
     if SSL_ENABLED:
         log.debug("main | RUNNING OVER SSL")
-        app.run(host=CFG["network"]["host"], port=CFG["network"]["port"], threaded=False, debug=False, use_reloader=False, ssl_context=(
+        app.run(host=CFG["network"]["host"], port=CFG["network"]["port"], threaded=False, debug=False,
+                use_reloader=False, ssl_context=(
                 PUB_KEY, PRIV_KEY))
     else:
         log.debug("main | HTTPS DISABLED | RUNNING OVER HTTP")
         app.run(host=CFG["network"]["host"], port=CFG["network"]
-                ["port"], threaded=False, debug=False)
+        ["port"], threaded=False, debug=False)

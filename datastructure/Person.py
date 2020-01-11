@@ -13,7 +13,7 @@ log = getLogger()
 
 class Person(object):
     """
-    Rappresent the necessary information for classify a person's face
+    Represent the necessary information for classify a person's face
     """
 
     def __init__(self):
@@ -29,7 +29,7 @@ class Person(object):
             "Y": []
         }
 
-    def init_dataset(self):
+    def init_dataset(self, detection_model, jitters):
         """
         This method is delegated to load the images related to a person and verify if the ones
         are suitable for training the neural network.
@@ -39,12 +39,12 @@ class Person(object):
         """
 
         if self.path != "" and isdir(self.path):
-            log.debug("initDataset | Paramater provided, iterating images ..")
+            log.debug("initDataset | Parameter provided, iterating images ..")
             # Iterating the images in parallel
             # pool = ThreadPool(2)
             # self.dataset["X"] = pool.map(self.init_dataset_core, image_files_in_folder(self.path))
             for image_path in image_files_in_folder(self.path):
-                self.dataset["X"].append(self.init_dataset_core(image_path))
+                self.dataset["X"].append(self.init_dataset_core(detection_model, jitters, image_path))
             self.dataset["X"] = list(
                 filter(None.__ne__, self.dataset["X"]))  # Remove None
             # Loading the Y [target]
@@ -55,9 +55,11 @@ class Person(object):
         return
 
     @staticmethod
-    def init_dataset_core(img_path=None):
+    def init_dataset_core(detection_model, jitters, img_path=None):
         """
         Delegated core method for parallelize work
+        :detection_model
+        :jitters
         :param img_path:
         :return:
         """
@@ -69,16 +71,16 @@ class Person(object):
             return None
         # log.debug("initDataset | Image loaded! | Searching for face ...")
         # Array of w,x,y,z coordinates
-        # NOTE: Can be used batch_face_locations in order to threadize the image init, but unfortunately
+        # NOTE: Can be used batch_face_locations in order to parallelize the image init, but unfortunately
         # it's the only GPU that i have right now. And, of course, i'll try to don't burn it
-        face_bounding_boxes = face_locations(image, model="hog")
+        face_bounding_boxes = face_locations(image, model=detection_model)
         face_data = None
         if len(face_bounding_boxes) == 1:
             log.info(
                 "initDataset | Image {0} have only 1 face, loading for future training ...".format(img_path))
             # Loading the X [data] using 300 different distortion
             face_data = face_encodings(
-                image, known_face_locations=face_bounding_boxes, num_jitters=1)[0]
+                image, known_face_locations=face_bounding_boxes, num_jitters=jitters)[0]
         else:
             log.error(
                 "initDataset | Image {0} not suitable for training!".format(img_path))

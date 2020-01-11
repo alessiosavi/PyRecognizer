@@ -8,9 +8,8 @@ openssl req -x509 -out localhost.crt -keyout localhost.key \
   -newkey rsa:2048 -nodes -sha256 \
   -subj '/CN=localhost' -extensions EXT -config <( \
    printf "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
-
-
 """
+import filecmp
 import json
 import logging
 import os
@@ -19,7 +18,6 @@ import random
 import shutil
 import string
 import zipfile
-import filecmp
 from logging.handlers import TimedRotatingFileHandler
 
 import PIL
@@ -82,7 +80,7 @@ def init_main_data(config_file):
         raise Exception("Unable to load JSON File: {}".format(config_file))
 
     log = load_logger(CFG["logging"]["level"], CFG["logging"]
-                      ["path"], CFG["logging"]["prefix"])
+    ["path"], CFG["logging"]["prefix"])
 
     # Store the image predicted drawing a boc in the face of the person
     TMP_UPLOAD_PREDICTION = CFG["PyRecognizer"]["temp_upload_predict"]
@@ -92,6 +90,16 @@ def init_main_data(config_file):
     TMP_UPLOAD = CFG["PyRecognizer"]["temp_upload"]
     # Save the images of unkown people for future clustering/labeling
     TMP_UNKNOWN = CFG["PyRecognizer"]["temp_unknown"]
+    # Use CNN if you have a GPU, use  HOG if you have CPU only
+    DETECTION_MODEL = CFG["PyRecognizer"]["detection_model"].lower()
+    # Use data augmentation when retrieving face encodings
+    JITTER = CFG["PyRecognizer"]["jitter"]
+
+    if DETECTION_MODEL is not "hog" and DETECTION_MODEL is not "cnn":
+        log.debug("DETECTION_MODEL selected is not valid! [{}], using 'hog' as default!".format(DETECTION_MODEL))
+
+    if JITTER < 0:
+        log.debug("JITTER can be lower than 0, using 0 as default")
 
     if not os.path.exists(TMP_UPLOAD_PREDICTION):
         os.makedirs(TMP_UPLOAD_PREDICTION)
@@ -102,7 +110,7 @@ def init_main_data(config_file):
     if not os.path.exists(TMP_UNKNOWN):
         os.makedirs(TMP_UNKNOWN)
 
-    return CFG, log, TMP_UPLOAD_PREDICTION, TMP_UPLOAD_TRAINING, TMP_UPLOAD, TMP_UNKNOWN
+    return CFG, log, TMP_UPLOAD_PREDICTION, TMP_UPLOAD_TRAINING, TMP_UPLOAD, TMP_UNKNOWN, DETECTION_MODEL, JITTER
 
 
 def load_logger(level, path, name):
@@ -192,7 +200,7 @@ def dump_dataset(X, Y, path):
             pickle.dump(dataset, f)
     else:
         log.error(
-            "dump_dataset | Path {} ALREDY EXIST exist, avoiding to overwrite".format(path))
+            "dump_dataset | Path {} ALREADY EXIST exist, avoiding to overwrite".format(path))
 
 
 def remove_dir(directory: str):
@@ -222,20 +230,19 @@ def verify_extension(folder, file):
         log.info("Verifying zip bomb ...")
         zp = zipfile.ZipFile(os.path.join(folder, file))
         size = sum([zinfo.file_size for zinfo in zp.filelist])
-        zip_kb = float(size)/(1000*1000)  # MB
+        zip_kb = float(size) / (1000 * 1000)  # MB
         if zip_kb > 250:
-            log.error("ZIP BOMB DETECTED!")
-            #raise Exception("Zip file size is to much ...")
+            log.error("ZIP BOMB DETECTED! | Zip file size is to much ...")
             return "ZIP_BOMB!"
         return "zip"
 
     elif extension == ".dat":
-        # Photos have been alredy analyzed, dataset is ready!
+        # Photos have been already analyzed, dataset is ready!
         return "dat"
     return None
 
 
-def retrieve_dataset(folder_uncompress,  zip_file, clf):
+def retrieve_dataset(folder_uncompress, zip_file, clf):
     """
 
     :param folder_uncompress:
@@ -282,11 +289,10 @@ def secure_request(request, ssl: bool):
         request.headers["Content-Security-Policy"] = "upgrade-insecure-requests"
         request.headers['Strict-Transport-Security'] = "max-age=60; includeSubDomains; preload"
 
-
     return request
 
 
-def load_image_file(file, mode='RGB',):
+def load_image_file(file, mode='RGB', ):
     """
     Loads an image file (.jpg, .png, etc) into a numpy array
 
@@ -307,14 +313,14 @@ def load_image_file(file, mode='RGB',):
     # In first instance manage the HIGH-Dimension photos
     if width > 3600 or height > 3600:
         if width > height:
-            ratio = width/800
+            ratio = width / 800
         else:
-            ratio = height/800
+            ratio = height / 800
 
     elif 1200 <= width <= 1600 or 1200 <= height <= 1600:
-        ratio = 1/2
+        ratio = 1 / 2
     elif 1600 <= width <= 3600 or 1600 <= height <= 3600:
-        ratio = 1/3
+        ratio = 1 / 3
 
     log.debug("Dimension: w: {} | h: {}".format(w, h))
     log.debug("new ratio -> {}".format(ratio))
@@ -348,7 +354,7 @@ def find_duplicates(directory: str):
 
     equals = []
     for i in range(len(files)):
-        for j in range(i+1, len(files)):
+        for j in range(i + 1, len(files)):
             if filecmp.cmp(os.path.join(directory, files[i]), os.path.join(directory, files[j])):
                 equals.append(os.path.join(directory, files[i]))
                 break

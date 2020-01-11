@@ -42,11 +42,11 @@ class Response(object):
                         scores = data["scores"]
                         if len(predictions) == len(scores):
                             log.debug(
-                                "parse_data | Predictions and scores same lenght")
+                                "parse_data | Predictions and scores same length")
                         for i in range(len(predictions)):
                             t[predictions[i][0]] = scores[i]
                         log.debug(
-                            "parse_data | Dict initalized -> {}".format(t))
+                            "parse_data | Dict initialized -> {}".format(t))
                         return t
 
         self.date = data

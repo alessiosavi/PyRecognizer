@@ -7,6 +7,7 @@ import logging
 import os
 import pickle
 import time
+from math import pow
 from pprint import pformat
 
 import face_recognition
@@ -15,7 +16,6 @@ from sklearn.metrics import accuracy_score, balanced_accuracy_score, classificat
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.neural_network import MLPClassifier
 from tqdm import tqdm
-from math import pow
 
 from datastructure.Person import Person
 from utils.util import dump_dataset, load_image_file
@@ -37,7 +37,7 @@ class Classifier(object):
 
     def init_classifier(self):
         """
-        Initialize a new classifier after be sure that necessary data are initalized
+        Initialize a new classifier after be sure that necessary data are initialized
         """
         if self.classifier is None:
             log.debug("init_classifier | START!")
@@ -52,8 +52,8 @@ class Classifier(object):
 
     def load_classifier_from_file(self, timestamp):
         """
-        Initalize the classifier from file.
-        The classifier file rappresent the name of the directory related to the classifier that we want to load.
+        Initialize the classifier from file.
+        The classifier file represent the name of the directory related to the classifier that we want to load.
 
         The tree structure of the the model folder will be something like this
 
@@ -99,7 +99,7 @@ class Classifier(object):
         if err is not None:
             log.error(err)
             log.error("load_classifier_from_file | Seems that the model is gone :/ | Loading an empty classifier for "
-                      "training purpouse ...")
+                      "training purpose ...")
             self.classifier = None
         return
 
@@ -230,42 +230,44 @@ class Classifier(object):
 
         return config
 
-    def init_peoples_list(self, peoples_path=None):
+    def init_peoples_list(self, detection_model, jitters, peoples_path=None):
         """
         This method is delegated to iterate among the folder that contains the peoples's face in order to
-        initalize the array of peoples
+        initialize the array of peoples
         :return:
         """
 
-        log.debug("init_peoples_list | Initalizing people ...")
+        log.debug("init_peoples_list | Initializing people ...")
         if peoples_path is not None and os.path.isdir(peoples_path):
             self.training_dir = peoples_path
         else:
             raise Exception("Dataset (peoples faces) path not provided :/")
-        # The init process can be threadized, but BATCH method will perform better
+        # The init process can be parallelized, but BATCH method will perform better
         # pool = ThreadPool(3)
         # self.peoples_list = pool.map(self.init_peoples_list_core, os.listdir(self.training_dir))
 
         for people_name in tqdm(os.listdir(self.training_dir),
                                 total=len(os.listdir(self.training_dir)), desc="Init people list ..."):
-            self.peoples_list.append(self.init_peoples_list_core(people_name))
+            self.peoples_list.append(self.init_peoples_list_core(detection_model, jitters, people_name))
 
         self.peoples_list = list(
             filter(None.__ne__, self.peoples_list))  # Remove None
 
-    def init_peoples_list_core(self, people_name):
+    def init_peoples_list_core(self, detection_model, jitters, people_name):
         """
         Delegated core method for parallelize operation
+        :detection_model
+        :jitters
         :param people_name:
         :return:
         """
         if os.path.isdir(os.path.join(self.training_dir, people_name)):
-            log.debug("Initalizing people {0}".format(
+            log.debug("Initializing people {0}".format(
                 os.path.join(self.training_dir, people_name)))
             person = Person()
             person.name = people_name
             person.path = os.path.join(self.training_dir, people_name)
-            person.init_dataset()
+            person.init_dataset(detection_model, jitters)
             return person
         else:
             log.debug("People {0} invalid folder!".format(
@@ -295,44 +297,46 @@ class Classifier(object):
     # The method is delegated to try to retrieve the face from the given image.
     # In case of cuda_malloc error (out of memory), the image will be resized
     @staticmethod
-    def extract_face_from_image(X_img_path):
+    def extract_face_from_image(X_img_path, detection_model, jitters):
         # Load image data in a numpy array
         try:
-            log.debug("predict | Loading image {}".format(X_img_path))
+            log.debug("extract_face_from_image | Loading image {}".format(X_img_path))
             X_img, ratio = load_image_file(X_img_path)
         except OSError:
-            log.error("predict | What have you uploaded ???")
+            log.error("extract_face_from_image | What have you uploaded ???")
             return -2, -2, -1
-        log.debug("predict | Extracting faces locations ...")
+        log.debug("extract_face_from_image | Extracting faces locations ...")
         try:
             # TODO: Reduce size of the image at every iteration
             X_face_locations = face_recognition.face_locations(
-                X_img, model="hog") # model="cnn")
+                X_img, model=detection_model)  # model="cnn")
         except RuntimeError:
             log.error(
-                "predict | GPU does not have enough memory: FIXME unload data and retry")
+                "extract_face_from_image | GPU does not have enough memory: FIXME unload data and retry")
             return None, None, ratio
 
-        log.debug("predict | Found {} face(s) for the given image".format(
+        log.debug("extract_face_from_image | Found {} face(s) for the given image".format(
             len(X_face_locations)))
 
         # If no faces are found in the image, return an empty result.
         if len(X_face_locations) == 0:
-            log.warning("predict | Seems that no faces was found :( ")
+            log.warning("extract_face_from_image | Seems that no faces was found :( ")
             return -3, -3, ratio
 
-        # Find encodings for faces in the test iamge
-        log.debug("predict | Encoding faces ...")
+        # Find encodings for faces in the test image
+        log.debug("extract_face_from_image | Encoding faces using [{}] jitters ...".format(jitters))
         # num_jitters increase the distortion check
         faces_encodings = face_recognition.face_encodings(
-            X_img, known_face_locations=X_face_locations, num_jitters=1)
-        log.debug("predict | Face encoded! | Let's ask to the neural network ...")
+            X_img, known_face_locations=X_face_locations, num_jitters=jitters)
+        log.debug("extract_face_from_image | Face encoded! | Let's ask to the neural network ...")
         return faces_encodings, X_face_locations, ratio
 
-    def predict(self, X_img_path, distance_threshold=0.45):
+    def predict(self, X_img_path, detection_model, jitters, distance_threshold=0.45):
         """
         Recognizes faces in given image using a trained KNN classifier
 
+        :detection_model
+        :jitters
         :param X_img_path: path to image to be recognized
         :param distance_threshold: (optional) distance threshold for face classification. the larger it is,
         the more chance of mis-classifying an unknown person as a known one.
@@ -342,7 +346,7 @@ class Classifier(object):
 
         if self.classifier is None:
             log.error(
-                "predict | Be sure that you have loaded/trained the nerual network model")
+                "predict | Be sure that you have loaded/trained the neural network model")
             return None
 
         faces_encodings, X_face_locations = None, None
@@ -352,7 +356,7 @@ class Classifier(object):
         ratio = 2
         while faces_encodings is None or X_face_locations is None:
             faces_encodings, X_face_locations, ratio = Classifier.extract_face_from_image(
-                X_img_path)
+                X_img_path, detection_model, jitters)
             # In this case return back the error to the caller
             if isinstance(faces_encodings, int):
                 return faces_encodings
@@ -375,7 +379,7 @@ class Classifier(object):
             element = list(pred[i].items())[0]
             log.debug("pred in cycle: {}".format(element))
             face_prediction.append(element)
-            #log.debug("predict | *****MIN****| {}".format(min(closest_distances[0][i])))
+            # log.debug("predict | *****MIN****| {}".format(min(closest_distances[0][i])))
         log.debug("Scores -> {}".format(face_prediction))
 
         _predictions = []
@@ -383,7 +387,7 @@ class Classifier(object):
         if len(face_prediction) > 0:
             for person_score, loc in zip(face_prediction, X_face_locations):
                 if person_score[1] < distance_threshold:
-                    log.warning("predict | Person {} does not outbounds treshold {}<{}".format(
+                    log.warning("predict | Person {} does not outbounds threshold {}<{}".format(
                         pred, person_score[1], distance_threshold))
                 else:
                     log.debug("predict | Pred: {} | Loc: {} | Score: {}".format(

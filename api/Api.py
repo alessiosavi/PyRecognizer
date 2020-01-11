@@ -15,11 +15,11 @@ from utils.util import print_prediction_on_image, random_string, retrieve_datase
 log = getLogger()
 
 
-def predict_image(img_path, clf, PREDICTION_PATH, TMP_UNKNOWN, treshold=45):
+def predict_image(img_path, clf, PREDICTION_PATH, TMP_UNKNOWN, DETECTION_MODEL, JITTER, threshold=45):
     """
 
     :param TMP_UNKNOWN:
-    :param treshold:
+    :param threshold:
     :param PREDICTION_PATH: global variable where image recognized are saved
     :param img_path: image that have to be predicted
     :param clf: classifier in charge to predict the image
@@ -31,7 +31,7 @@ def predict_image(img_path, clf, PREDICTION_PATH, TMP_UNKNOWN, treshold=45):
         prediction = None
     else:
         log.debug("predict_image | Predicting {}".format(img_path))
-        prediction = clf.predict(img_path, treshold)
+        prediction = clf.predict(img_path, DETECTION_MODEL, JITTER, threshold)
         log.debug("predict_image | Result: {}".format(prediction))
 
     # Manage error
@@ -50,13 +50,13 @@ def predict_image(img_path, clf, PREDICTION_PATH, TMP_UNKNOWN, treshold=45):
             response.status = "KO"
             log.error("predict_image | Face not recognized ...")
 
-            # Saving unkown faces for future clustering
+            # Saving unknown faces for future clustering
             now = str(datetime.now())[:23]
             now = now.replace(":", "_")
             now = now.replace(".", "_")
             head, tail = os.path.split(img_path)
             filename, file_extension = os.path.splitext(tail)
-            filename = filename + "__"+now+file_extension
+            filename = filename + "__" + now + file_extension
             filename = os.path.join(TMP_UNKNOWN, filename)
             log.info("Image not recognized, saving it in: {}".format(filename))
             shutil.copy(img_path, filename)
@@ -89,10 +89,6 @@ def predict_image(img_path, clf, PREDICTION_PATH, TMP_UNKNOWN, treshold=45):
         print_prediction_on_image(
             img_path, prediction["predictions"], img_file_name)
 
-        # response.error = "FACE_FOUND"
-        # response.description = "/uploads/"+img_name
-        # response.status = "OK"
-        # response.data = prediction["predictions"]
         return Response(status="OK", description="/uploads/" + img_name, data=prediction).__dict__
 
     return response.__dict__
@@ -117,14 +113,14 @@ def train_network(folder_uncompress, zip_file, clf):
         neural_model_file, _ = clf.train(dataset["X"], dataset["Y"], timestamp)
 
         response = Response(status="OK", data=neural_model_file)
-        response.description = "Model succesfully trained!"
-        log.debug("train_network | Tuning phase finihsed! | {}".format(
+        response.description = "Model successfully trained!"
+        log.debug("train_network | Tuning phase finished! | {}".format(
             response.description))
 
         return response.__dict__
 
 
-def tune_network(folder_uncompress,  zip_file, clf):
+def tune_network(folder_uncompress, zip_file, clf):
     """
     Train a new neural model with the zip file provided
     :param folder_uncompress:
@@ -133,7 +129,7 @@ def tune_network(folder_uncompress,  zip_file, clf):
     :return:
     """
     log.debug("tune_network | Starting tuning phase ...")
-    dataset = retrieve_dataset(folder_uncompress,  zip_file, clf)
+    dataset = retrieve_dataset(folder_uncompress, zip_file, clf)
 
     if dataset is None:
         return Response(error="ERROR DURING LOADING DAT", description="Seems that the dataset is not valid").__dict__
@@ -144,9 +140,9 @@ def tune_network(folder_uncompress,  zip_file, clf):
             dataset["X"], dataset["Y"], timestamp)
 
         response = Response(status="OK", data=neural_model_file)
-        response.description = "Model succesfully trained! | {}".format(
+        response.description = "Model successfully trained! | {}".format(
             time.strftime("%H:%M:%S.%f", time.gmtime(elapsed_time)))
-        log.debug("train_network | Tuning phase finihsed! | {}".format(
+        log.debug("train_network | Tuning phase finished! | {}".format(
             response.description))
 
         return response.__dict__

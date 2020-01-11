@@ -24,11 +24,11 @@ class Administrator(object):
         log.warning("Initializing a new redis connection")
         self.redis_client = redis.Redis(host=host, port=port, db=db)
         try:
-            healt_check = self.redis_client.ping()
+            health_check = self.redis_client.ping()
         except redis.exceptions.ConnectionError:
-            healt_check = False
-            log.warning("Connection not estabilished!")
-        return healt_check
+            health_check = False
+            log.warning("Connection not established!")
+        return health_check
 
     @staticmethod
     def validate_password(password) -> bool:
@@ -46,13 +46,13 @@ class Administrator(object):
 
     def verify_user_exist(self) -> bool:
         """
-        Verify that an user is alredy registered.
-        True -> Alredy exist
-        Flase -> New user
+        Verify that an user is already registered.
+        True -> Already exist
+        False -> New user
         """
-        alredy_exists = self.retrieve_password()
+        already_exists = self.retrieve_password()
         # Be sure that user does not exists
-        return not alredy_exists is None
+        return not already_exists is None
 
     def remove_user(self) -> bool:
         if not self.verify_user_exist():
@@ -64,7 +64,7 @@ class Administrator(object):
 
     def add_user(self) -> bool:
         if self.verify_user_exist():
-            log.warning("User {} alredy exist ...".format(vars(self)))
+            log.warning("User {} already exist ...".format(vars(self)))
             return False
         if not self.validate_password(self.password):
             log.warning("Password not valid")
@@ -72,7 +72,7 @@ class Administrator(object):
 
         log.warning("Encrypting password -> {}".format(self.password))
         self.password = self.encrypt_password(str(self.password))
-        log.warning("Passwrod encrypted {}".format(self.password))
+        log.warning("Password encrypted {}".format(self.password))
         self.redis_client.set(self.get_name(), self.password)
         log.warning("User {} registered!".format(self.get_name()))
         return True

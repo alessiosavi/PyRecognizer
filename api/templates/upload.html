@@ -11,16 +11,18 @@
     <input name=file type=file>
     <input type=submit value=Upload>
     <br><br>
-    <label for="treshold">Treshold</label>
-    <input type="text" name="treshold"  value="45">
+    <label for="threshold">Threshold</label>
+    <label>
+        <input type="text" name="threshold" value="45">
+    </label>
     <input name=_csrf_token type=hidden value="{{ csrf_token() }}">
 </form>
 {% with messages = get_flashed_messages() %}
-{% if messages %}
-{% for message in messages %}
-<p style='color:crimson'>{{ message }} </p>
-{% endfor %}
-{% endif %}
+    {% if messages %}
+        {% for message in messages %}
+            <p style='color:crimson'>{{ message }} </p>
+        {% endfor %}
+    {% endif %}
 {% endwith %}
 </body>
 </html>

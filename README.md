@@ -368,7 +368,7 @@ The tool is powered with `Flask_MonitoringDashboard` that expose some useful uti
   - [Acknowledgments](#acknowledgments)
 
 ## Prerequisites
-
+__
 The software is coded in `Python`, into the `requirements.txt` file are saved the necessary dependencies.
 
 Create a virtual environment with you favorite `python` package manager
@@ -424,7 +424,7 @@ You can find an example dataset at the following link:
 
 Some people in this dataset have only very few image.
 
-We can create a new one dataset using the following `bash` command, in order to exctract only the people that contains more than 5 images:
+We can create a new one dataset using the following `bash` command, in order to extract only the people that contains more than 5 images:
 
 ```bash
 # Extract only the people that have more than 5 photos (-gt 5)
@@ -439,14 +439,19 @@ At this point the dataset is complete and you can continue with training/tuning.
 
 Backup and remove the already present model (if present,inside the `dataset/model` directory), the tool will understand that you want to train the model and will initialize a new MLP model. The model have the following name template: `%Y%m%d_%H%M%S`, related to the time that was generated.
 
-Open your browser at the `endpoint:port/train` specified in the configuration file (`conf/test.json`).  
-**NOTE:** you can switch on/off the SSL, be sure to add `https` before the endpoint ip/hostname if it is enabled.
+Open your browser at the `endpoint:port/train` specified in the configuration file (`conf/test.json`) and you will be redirect to the Administrator login page.
+**NOTE:** you can switch on/off the SSL, be sure to add `https` before the endpoint ip/hostname if it is enabled.  
+**NOTE:** In order to access to the training/tuning page, you have to run the script in [utils/add_users.py](utils/add_users.py) for create an admin user, capable of manage the train/tune for the neural network.  
+**NOTE:** A instance of `redis` have to be up and running if you want to train your custom neural network, cause the login will read the data from `redis`.
 
 At this point you can upload the dataset (the previous `zip` file) and wait for the training of the neural network.
 
-You can tail the log in `log/pyrecognizer.log` in order to understand the status of the training.
 
-Once completed, the browser page will be refreshed automatically and you can predict a new photos that the neural network haven't seen before.
+You can tail the log in `log/pyrecognizer.log` in order to understand the status of the training (`lnav` is your friends).
+
+Once completed, the browser page will be refreshed automatically and you can:
+- predict a new photos that the neural network haven't seen before, realated to the peoeple in the dataset.
+- reduce the treeshold and see how you are similar to a celebrity!.
 
 **NOTE:** The same procedure can be applied for `tune` the neural network. By this way, you are going to execute an exhaustive search over specified parameter values for the KNN classifier. And, obviously, is more time consuming and the neural network produced will be more precise. The endpoint is `/tune` instead of `/train`
 

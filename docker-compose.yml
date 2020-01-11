@@ -1,0 +1,32 @@
+version: '3.3'
+services:
+
+  pyrecognizer:
+    image: pyrecognizer:v0.3.3
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # NOTE: Be sure that the conf/conf.json reflect these port
+    ports:
+      - "0.0.0.0:8081:8081"
+    restart: always
+    depends_on:
+      - redisdb
+    network_mode: "host"
+
+# Necessary only in case of train/tune of the network
+redisdb:
+    container_name: redis
+    image: redis
+    restart: always
+    ports:
+      - "0.0.0.0:6379:6379"
+    expose:
+      - '6379'
+    volumes:
+      - redis-db:/var/lib/redis
+    entrypoint: redis-server --appendonly yes
+    network_mode: "host"
+
+volumes:
+  redis-db:

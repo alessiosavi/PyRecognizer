@@ -1,1 +1,11 @@
-{"classifier_file": "20191202_153034/model.clf", "params": {"activation": "identity", "hidden_layer_sizes": [128], "learning_rate": "constant", "solver": "adam"}}
+{
+  "classifier_file": "20191202_153034/model.clf",
+  "params": {
+    "activation": "identity",
+    "hidden_layer_sizes": [
+      128
+    ],
+    "learning_rate": "constant",
+    "solver": "adam"
+  }
+}

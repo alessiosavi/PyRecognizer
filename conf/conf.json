@@ -1,10 +1,12 @@
 {
   "PyRecognizer": {
-    "Version": "0.2.1",
+    "Version": "0.3.3",
     "temp_upload_training": "uploads/training/",
     "temp_upload_predict": "uploads/predict/",
     "temp_upload": "uploads/upload",
-    "temp_unknown": "uploads/unknown"
+    "temp_unknown": "uploads/unknown",
+    "detection_model": "hog",
+    "jitter": 1
   },
   "logging": {
     "path": "log/",
