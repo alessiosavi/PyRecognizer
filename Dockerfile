@@ -18,4 +18,4 @@ RUN pip install -r requirements.txt
 EXPOSE 8081
 
 # Run the executable
-CMD ["python main.py"]
+CMD ["python", "main.py"]
