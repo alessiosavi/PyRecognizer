@@ -1,0 +1,36 @@
+{
+  "PyRecognizer": {
+    "Version": "0.3.3",
+    "temp_upload_training": "../uploads/training/",
+    "temp_upload_predict": "../uploads/predict/",
+    "temp_upload": "../uploads/upload",
+    "temp_unknown": "../uploads/unknown",
+    "detection_model": "hog",
+    "jitter": 1,
+    "encoding_models": "small"
+  },
+  "logging": {
+    "path": "test_log/",
+    "prefix": "pyrecognizer.log",
+    "level": "debug"
+  },
+  "network": {
+    "host": "0.0.0.0",
+    "port": 8081,
+    "templates": "../api/templates/",
+    "csrf_protection": false,
+    "SSL": {
+      "enabled": false,
+      "cert.pub": "../conf/ssl/localhost.crt",
+      "cert.priv": "../conf/ssl/localhost.key"
+    }
+  },
+  "classifier": {
+    "training_dir": "../dataset/images/",
+    "model_path": "../dataset/model/",
+    "timestamp": "20191202_153034"
+  },
+  "dashboard": {
+    "config_file": "../conf/dashboard.ini"
+  }
+}
