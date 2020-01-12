@@ -6,7 +6,8 @@
     "temp_upload": "uploads/upload",
     "temp_unknown": "uploads/unknown",
     "detection_model": "hog",
-    "jitter": 1
+    "jitter": 1,
+    "encoding_models": "small"
   },
   "logging": {
     "path": "log/",

@@ -22,7 +22,7 @@ from utils.util import init_main_data, random_string, secure_request, find_dupli
 # ===== LOAD CONFIGURATION FILE =====
 CONFIG_FILE = "conf/conf.json"
 
-CFG, log, TMP_UPLOAD_PREDICTION, TMP_UPLOAD_TRAINING, TMP_UPLOAD, TMP_UNKNOWN, DETECTION_MODEL, JITTER = init_main_data(
+CFG, log, TMP_UPLOAD_PREDICTION, TMP_UPLOAD_TRAINING, TMP_UPLOAD, TMP_UNKNOWN, DETECTION_MODEL, JITTER, ENCODING_MODELS = init_main_data(
     CONFIG_FILE)
 
 SSL_ENABLED = CFG["network"]["SSL"]["enabled"]
@@ -115,7 +115,8 @@ def predict():
     img_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     file.save(img_path)
     return jsonify(
-        response=predict_image(img_path, clf, TMP_UPLOAD_PREDICTION, TMP_UNKNOWN, DETECTION_MODEL, JITTER, threshold))
+        response=predict_image(img_path, clf, TMP_UPLOAD_PREDICTION, TMP_UNKNOWN, DETECTION_MODEL, JITTER,
+                               ENCODING_MODELS, threshold))
 
 
 @app.route('/train', methods=['GET'])
@@ -140,7 +141,7 @@ def train_http():
         return redirect(request.url)  # Return to HTML page [GET]
     file = request.files['file']
     file.save(os.path.join(TMP_UPLOAD_TRAINING, file.filename))
-    return jsonify(train_network(TMP_UPLOAD_TRAINING, file, clf))
+    return jsonify(train_network(TMP_UPLOAD_TRAINING, file, clf, DETECTION_MODEL, JITTER, ENCODING_MODELS))
 
 
 @app.route('/tune', methods=['GET'])
@@ -165,7 +166,7 @@ def tune_http():
         return redirect(request.url)  # Return to HTML page [GET]
     file = request.files['file']
     file.save(os.path.join(TMP_UPLOAD_TRAINING, file.filename))
-    return jsonify(tune_network(TMP_UPLOAD_TRAINING, file, clf))
+    return jsonify(tune_network(TMP_UPLOAD_TRAINING, file, clf, DETECTION_MODEL, JITTER, ENCODING_MODELS))
 
 
 @app.route('/uploads/<filename>')

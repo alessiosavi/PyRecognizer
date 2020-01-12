@@ -15,7 +15,7 @@ from utils.util import print_prediction_on_image, random_string, retrieve_datase
 log = getLogger()
 
 
-def predict_image(img_path, clf, PREDICTION_PATH, TMP_UNKNOWN, DETECTION_MODEL, JITTER, threshold=45):
+def predict_image(img_path, clf, PREDICTION_PATH, TMP_UNKNOWN, DETECTION_MODEL, JITTER, encoding_models, threshold=45):
     """
 
     :param TMP_UNKNOWN:
@@ -31,7 +31,7 @@ def predict_image(img_path, clf, PREDICTION_PATH, TMP_UNKNOWN, DETECTION_MODEL, 
         prediction = None
     else:
         log.debug("predict_image | Predicting {}".format(img_path))
-        prediction = clf.predict(img_path, DETECTION_MODEL, JITTER, threshold)
+        prediction = clf.predict(img_path, DETECTION_MODEL, JITTER, encoding_models, threshold)
         log.debug("predict_image | Result: {}".format(prediction))
 
     # Manage error
@@ -40,7 +40,6 @@ def predict_image(img_path, clf, PREDICTION_PATH, TMP_UNKNOWN, DETECTION_MODEL, 
         response.description = "Classifier is None | Training mandatory"
         response.status = "KO"
         log.error("predict_image | Seems that the classifier is not loaded :/")
-    # return Response(status="KO", description="CLASSIFIER_NOT_LOADED", data=prediction).__dict__
 
     elif isinstance(prediction, int):
         response.status = "KO"
@@ -73,6 +72,7 @@ def predict_image(img_path, clf, PREDICTION_PATH, TMP_UNKNOWN, DETECTION_MODEL, 
                 "predict_image | Seems that this face is related to nobody that i've seen before ...")
             response.error = "FACE_NOT_FOUND"
             response.description = "No face found in the given image ..."
+
     # Manage success
     elif "predictions" in prediction and isinstance(prediction['predictions'], list):
         # Be sure to don't overwrite an existing image
@@ -94,7 +94,7 @@ def predict_image(img_path, clf, PREDICTION_PATH, TMP_UNKNOWN, DETECTION_MODEL, 
     return response.__dict__
 
 
-def train_network(folder_uncompress, zip_file, clf):
+def train_network(folder_uncompress, zip_file, clf, DETECTION_MODEL, JITTER, encoding_models):
     """
     Train a new neural model with the zip file provided
     :param folder_uncompress:
@@ -104,7 +104,7 @@ def train_network(folder_uncompress, zip_file, clf):
     """
 
     log.debug("train_network | Starting training phase ...")
-    dataset = retrieve_dataset(folder_uncompress, zip_file, clf)
+    dataset = retrieve_dataset(folder_uncompress, zip_file, clf, DETECTION_MODEL, JITTER, encoding_models)
     if dataset is None:
         return Response(error="ERROR DURING LOADING DAT", description="Seems that the dataset is not valid").__dict__
 
@@ -120,7 +120,7 @@ def train_network(folder_uncompress, zip_file, clf):
         return response.__dict__
 
 
-def tune_network(folder_uncompress, zip_file, clf):
+def tune_network(folder_uncompress, zip_file, clf, DETECTION_MODEL, JITTER, encoding_models):
     """
     Train a new neural model with the zip file provided
     :param folder_uncompress:
@@ -129,7 +129,7 @@ def tune_network(folder_uncompress, zip_file, clf):
     :return:
     """
     log.debug("tune_network | Starting tuning phase ...")
-    dataset = retrieve_dataset(folder_uncompress, zip_file, clf)
+    dataset = retrieve_dataset(folder_uncompress, zip_file, clf, DETECTION_MODEL, JITTER, encoding_models)
 
     if dataset is None:
         return Response(error="ERROR DURING LOADING DAT", description="Seems that the dataset is not valid").__dict__

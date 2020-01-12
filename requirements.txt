@@ -1,7 +1,7 @@
 Cython
 numpy==1.17.4
 flask-login==0.4.1
-face_recognition==1.2.3
+git+git://github.com/alessiosavi/face_recognition@v1.2.4#egg=face_recognition
 redis==3.3.11
 Flask_MonitoringDashboard==3.0.5
 Flask==1.1.1

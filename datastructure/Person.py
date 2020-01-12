@@ -29,7 +29,7 @@ class Person(object):
             "Y": []
         }
 
-    def init_dataset(self, detection_model, jitters):
+    def init_dataset(self, detection_model, jitters, encoding_models):
         """
         This method is delegated to load the images related to a person and verify if the ones
         are suitable for training the neural network.
@@ -44,7 +44,7 @@ class Person(object):
             # pool = ThreadPool(2)
             # self.dataset["X"] = pool.map(self.init_dataset_core, image_files_in_folder(self.path))
             for image_path in image_files_in_folder(self.path):
-                self.dataset["X"].append(self.init_dataset_core(detection_model, jitters, image_path))
+                self.dataset["X"].append(self.init_dataset_core(detection_model, jitters, encoding_models, image_path))
             self.dataset["X"] = list(
                 filter(None.__ne__, self.dataset["X"]))  # Remove None
             # Loading the Y [target]
@@ -55,7 +55,7 @@ class Person(object):
         return
 
     @staticmethod
-    def init_dataset_core(detection_model, jitters, img_path=None):
+    def init_dataset_core(detection_model, jitters, encoding_models, img_path=None):
         """
         Delegated core method for parallelize work
         :detection_model
@@ -79,8 +79,8 @@ class Person(object):
             log.info(
                 "initDataset | Image {0} have only 1 face, loading for future training ...".format(img_path))
             # Loading the X [data] using 300 different distortion
-            face_data = face_encodings(
-                image, known_face_locations=face_bounding_boxes, num_jitters=jitters)[0]
+            face_data = face_encodings(image, known_face_locations=face_bounding_boxes, num_jitters=jitters,
+                                       model=encoding_models)[0]
         else:
             log.error(
                 "initDataset | Image {0} not suitable for training!".format(img_path))

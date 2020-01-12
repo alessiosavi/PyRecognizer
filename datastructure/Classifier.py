@@ -230,7 +230,7 @@ class Classifier(object):
 
         return config
 
-    def init_peoples_list(self, detection_model, jitters, peoples_path=None):
+    def init_peoples_list(self, detection_model, jitters, encoding_models, peoples_path=None):
         """
         This method is delegated to iterate among the folder that contains the peoples's face in order to
         initialize the array of peoples
@@ -248,12 +248,13 @@ class Classifier(object):
 
         for people_name in tqdm(os.listdir(self.training_dir),
                                 total=len(os.listdir(self.training_dir)), desc="Init people list ..."):
-            self.peoples_list.append(self.init_peoples_list_core(detection_model, jitters, people_name))
+            self.peoples_list.append(
+                self.init_peoples_list_core(detection_model, jitters, encoding_models, people_name))
 
         self.peoples_list = list(
             filter(None.__ne__, self.peoples_list))  # Remove None
 
-    def init_peoples_list_core(self, detection_model, jitters, people_name):
+    def init_peoples_list_core(self, detection_model, jitters, encoding_models, people_name):
         """
         Delegated core method for parallelize operation
         :detection_model
@@ -267,7 +268,7 @@ class Classifier(object):
             person = Person()
             person.name = people_name
             person.path = os.path.join(self.training_dir, people_name)
-            person.init_dataset(detection_model, jitters)
+            person.init_dataset(detection_model, jitters, encoding_models)
             return person
         else:
             log.debug("People {0} invalid folder!".format(
@@ -297,7 +298,7 @@ class Classifier(object):
     # The method is delegated to try to retrieve the face from the given image.
     # In case of cuda_malloc error (out of memory), the image will be resized
     @staticmethod
-    def extract_face_from_image(X_img_path, detection_model, jitters):
+    def extract_face_from_image(X_img_path, detection_model, jitters, encoding_models):
         # Load image data in a numpy array
         try:
             log.debug("extract_face_from_image | Loading image {}".format(X_img_path))
@@ -327,17 +328,18 @@ class Classifier(object):
         log.debug("extract_face_from_image | Encoding faces using [{}] jitters ...".format(jitters))
         # num_jitters increase the distortion check
         faces_encodings = face_recognition.face_encodings(
-            X_img, known_face_locations=X_face_locations, num_jitters=jitters)
+            X_img, known_face_locations=X_face_locations, num_jitters=jitters, model=encoding_models)
         log.debug("extract_face_from_image | Face encoded! | Let's ask to the neural network ...")
         return faces_encodings, X_face_locations, ratio
 
-    def predict(self, X_img_path, detection_model, jitters, distance_threshold=0.45):
+    def predict(self, X_img_path: str, detection_model: str, jitters: int, encoding_models: str,
+                distance_threshold: int = 0.45):
         """
         Recognizes faces in given image using a trained KNN classifier
 
-        :detection_model
-        :jitters
-        :param X_img_path: path to image to be recognized
+        :param detection_model: can be 'hog' (CPU) or 'cnn' (GPU)
+        :param jitters: augmentation data (jitters=20 -> 20x time)
+        :param X_img_path: path of the image to be recognized
         :param distance_threshold: (optional) distance threshold for face classification. the larger it is,
         the more chance of mis-classifying an unknown person as a known one.
         :return: a list of names and face locations for the recognized faces in the image: [(name, bounding box), ...].
@@ -356,7 +358,7 @@ class Classifier(object):
         ratio = 2
         while faces_encodings is None or X_face_locations is None:
             faces_encodings, X_face_locations, ratio = Classifier.extract_face_from_image(
-                X_img_path, detection_model, jitters)
+                X_img_path, detection_model, jitters, encoding_models)
             # In this case return back the error to the caller
             if isinstance(faces_encodings, int):
                 return faces_encodings

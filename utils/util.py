@@ -94,12 +94,20 @@ def init_main_data(config_file):
     DETECTION_MODEL = CFG["PyRecognizer"]["detection_model"].lower()
     # Use data augmentation when retrieving face encodings
     JITTER = CFG["PyRecognizer"]["jitter"]
+    # Use 68 or 5 points
+    ENCODING_MODELS = CFG["PyRecognizer"]["encoding_models"].lower()
 
-    if DETECTION_MODEL is not "hog" and DETECTION_MODEL is not "cnn":
-        log.debug("DETECTION_MODEL selected is not valid! [{}], using 'hog' as default!".format(DETECTION_MODEL))
+    if DETECTION_MODEL != "hog" and DETECTION_MODEL != "cnn":
+        log.warning("DETECTION_MODEL selected is not valid! [{}], using 'hog' as default!".format(DETECTION_MODEL))
+        DETECTION_MODEL = "hog"
 
     if JITTER < 0:
-        log.debug("JITTER can be lower than 0, using 0 as default")
+        log.warning("JITTER can be lower than 0, using 1 as default")
+        JITTER = 1
+
+    if ENCODING_MODELS != "small" and ENCODING_MODELS != "large":
+        log.warning("ENCODING_MODELS have to be or 'large' or 'small', using 'small' as fallback")
+        ENCODING_MODELS = "small"
 
     if not os.path.exists(TMP_UPLOAD_PREDICTION):
         os.makedirs(TMP_UPLOAD_PREDICTION)
@@ -110,7 +118,7 @@ def init_main_data(config_file):
     if not os.path.exists(TMP_UNKNOWN):
         os.makedirs(TMP_UNKNOWN)
 
-    return CFG, log, TMP_UPLOAD_PREDICTION, TMP_UPLOAD_TRAINING, TMP_UPLOAD, TMP_UNKNOWN, DETECTION_MODEL, JITTER
+    return CFG, log, TMP_UPLOAD_PREDICTION, TMP_UPLOAD_TRAINING, TMP_UPLOAD, TMP_UNKNOWN, DETECTION_MODEL, JITTER, ENCODING_MODELS
 
 
 def load_logger(level, path, name):
@@ -242,7 +250,7 @@ def verify_extension(folder, file):
     return None
 
 
-def retrieve_dataset(folder_uncompress, zip_file, clf):
+def retrieve_dataset(folder_uncompress, zip_file, clf, DETECTION_MODEL, JITTER, encoding_models):
     """
 
     :param folder_uncompress:
@@ -257,7 +265,7 @@ def retrieve_dataset(folder_uncompress, zip_file, clf):
         log.debug("retrieve_dataset | Zip file uploaded")
         folder_name = unzip_data(folder_uncompress, zip_file)
         log.debug("retrieve_dataset | zip file uncompressed!")
-        clf.init_peoples_list(peoples_path=folder_name)
+        clf.init_peoples_list(DETECTION_MODEL, JITTER, encoding_models, peoples_path=folder_name)
         dataset = clf.init_dataset()
         log.debug("retrieve_dataset | Removing [{}]".format(folder_name))
         remove_dir(folder_name)

@@ -1,5 +1,3 @@
-.git
-dataset/
+dataset/*.zip
 .vscode/
-.github/
 .idea/
