@@ -2,6 +2,7 @@
 Generate the administrator of the neural network, delegated to train/tune the model
 """
 import sys
+
 sys.path.insert(0, "../")
 
 from datastructure.Administrator import Administrator

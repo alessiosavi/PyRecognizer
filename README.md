@@ -14,59 +14,59 @@ A simple face recognition engine
 The following list contains the name of the celebrity and the number of photos used for training, ordered by the number of photos
 
 <details><summary> Celebrites list</summary><br><pre>
-George_W_Bush 	530
+George_W_Bush  530
 Colin_Powell  236
-Tony_Blair 	144
-Donald_Rumsfeld 	121
-Gerhard_Schroeder 	109
+Tony_Blair  144
+Donald_Rumsfeld  121
+Gerhard_Schroeder  109
 Ariel_Sharon  77
 Hugo_Chavez   71
-Junichiro_Koizumi 	60
-Jean_Chretien 	55
-John_Ashcroft 	53
+Junichiro_Koizumi  60
+Jean_Chretien  55
+John_Ashcroft  53
 Serena_Williams 	52
-Jacques_Chirac 	52
-Vladimir_Putin 	49
+Jacques_Chirac  52
+Vladimir_Putin  49
 Luiz_Inacio_Lula_da_Silva 	48
-Gloria_Macapagal_Arroyo 	44
+Gloria_Macapagal_Arroyo  44
 Jennifer_Capriati 	42
-Arnold_Schwarzenegger 	42
+Arnold_Schwarzenegger  42
 Lleyton_Hewitt 	41
 Laura_Bush 	41
-Hans_Blix 	39
+Hans_Blix  39
 Alejandro_Toledo 	39
-Nestor_Kirchner 	37
-Andre_Agassi 	36
-Alvaro_Uribe 	35
-Tom_Ridge 	33
-Silvio_Berlusconi 	33
-Megawati_Sukarnoputri 	33
-Vicente_Fox 	32
-Roh_Moo-hyun 	32
-Kofi_Annan 	32
-John_Negroponte 	31
-David_Beckham 	31
-Recep_Tayyip_Erdogan 	30
-Guillermo_Coria 	30
+Nestor_Kirchner  37
+Andre_Agassi  36
+Alvaro_Uribe  35
+Tom_Ridge  33
+Silvio_Berlusconi  33
+Megawati_Sukarnoputri  33
+Vicente_Fox  32
+Roh_Moo-hyun  32
+Kofi_Annan  32
+John_Negroponte  31
+David_Beckham  31
+Recep_Tayyip_Erdogan  30
+Guillermo_Coria  30
 Mahmoud_Abbas 	29
-Bill_Clinton 	29
-Juan_Carlos_Ferrero 	28
+Bill_Clinton  29
+Juan_Carlos_Ferrero  28
 Jack_Straw 	28
-Ricardo_Lagos 	27
-Rudolph_Giuliani 	26
-Gray_Davis 	26
+Ricardo_Lagos  27
+Rudolph_Giuliani  26
+Gray_Davis  26
 Tom_Daschle 	25
 Winona_Ryder 	24
-Jeremy_Greenstock 	24
-Atal_Bihari_Vajpayee 	24
+Jeremy_Greenstock  24
+Atal_Bihari_Vajpayee  24
 Tiger_Woods 	23
-Saddam_Hussein 	23
+Saddam_Hussein  23
 Jose_Maria_Aznar 	23
-Pete_Sampras 	22
+Pete_Sampras  22
 Naomi_Watts 	22
-Lindsay_Davenport 	22
+Lindsay_Davenport  22
 Hamid_Karzai 	22
-George_Robertson 	22
+George_Robertson  22
 Jennifer_Lopez 	21
 Jennifer_Aniston 	21
 Carlos_Menem 	21
@@ -93,15 +93,15 @@ Spencer_Abraham 	17
 Renee_Zellweger 	17
 John_Snow 	17
 John_Kerry 	17
-John_Bolton 	17
-Jean_Charest 	17
-Bill_Gates 	17
+John_Bolton  17
+Jean_Charest  17
+Bill_Gates  17
 Trent_Lott 	16
-Tommy_Franks 	16
+Tommy_Franks  16
 Halle_Berry 	16
-Taha_Yassin_Ramadan 	15
+Taha_Yassin_Ramadan  15
 Pierce_Brosnan 	15
-Norah_Jones 	15
+Norah_Jones  15
 Nancy_Pelosi 	15
 Mohammed_Al-Douri 	15
 Meryl_Streep 	15
@@ -300,12 +300,12 @@ Luis_Ernesto_Derbez_Bautista 	6
 Leonid_Kuchma 	6
 Kamal_Kharrazi 	6
 Jose_Manuel_Durao_Barroso 	6
-JK_Rowling 	6
+JK_Rowling  6
 Jim_Furyk 	6
 Jay_Garner 	6
 Jan_Ullrich 	6
 Gwyneth_Paltrow 	6
-Fujio_Cho 	6
+Fujio_Cho  6
 Elsa_Zylberstein 	6
 Edward_Lu 	6
 Diana_Krall 	6
@@ -329,25 +329,34 @@ Albert_Costa 	6
 
 ## Introduction
 
-This project is developed for have a plug-and-play facial recognition tool able to detect and recognize multiple faces from photos. It aim to be inter-operable with other tool. For this purpose, it expose REST api in order to interact with the facial recognition engine (train/tune/predict) and return the result of the prediction in a JSON format.
+This project is developed for have a plug-and-play facial recognition tool able to detect and recognize *__multiple__* faces from photos.
+It aim to be inter-operable with other tool. For this purpose, it expose REST api in order to interact with the internal face-recognition engine (train/tune/predict) and return the result of the prediction in a JSON format.
 
-It's written for be a basecode/project structure for future project where a more complicated facial detect + neural network have to be engaged.
-Currently it use a Multi Layer Perceptron as neural network architecture in order to predict the given faces.
+It's written for be a basecode/project-template for future project where a more complicated facial detect + neural network have to be engaged.
+But is a complete face recognition tool that can be deployed on Docker.
+Currently it use a Multi Layer Perceptron (MLP) as neural network in order to predict the given faces.
 
 The tool is powered with `Flask_MonitoringDashboard` that expose some useful utilization/performance graph at the `/dashboard` endpoint
 
 ## Requirements
 
-- [olefile](https://github.com/decalage2/olefile) Parse, read and write Microsoft OLE2 files (deal with image)
-- [werkzeug](https://github.com/pallets/werkzeug) The comprehensive WSGI web application library
 - [face_recognition](https://github.com/ageitgey/face_recognition) Extract face point from image
-- [tqdm](https://github.com/tqdm/tqdm) A Fast, Extensible Progress Bar
-- [Flask_MonitoringDashboard](https://github.com/flask-dashboard/Flask-MonitoringDashboard) Automatically monitor the evolving performance of Flask/Python web services
 - [Flask](https://github.com/pallets/flask) The Python micro framework for building web applications
+- [Flask_MonitoringDashboard](https://github.com/flask-dashboard/Flask-MonitoringDashboard) Automatically monitor the evolving performance of Flask/Python web services
+- [numpy](https://github.com/numpy/numpy) The fundamental package for scientific computing with Python.
+- [olefile](https://github.com/decalage2/olefile) Parse, read and write Microsoft OLE2 files (deal with image)
 - [Pillow](https://github.com/python-pillow/Pillow) The friendly PIL fork (Python Imaging Library)
+- [py-bcrypt](https://code.google.com/archive/p/py-bcrypt/) Python wrapper of OpenBSD's Blowfish password hashing code
+- [redis-py](https://github.com/andymccurdy/redis-py) The Python interface to the Redis key-value store.
 - [scikit-learn](https://github.com/scikit-learn/scikit-learn) Machine learning in Python
+- [tqdm](https://github.com/tqdm/tqdm) A Fast, Extensible Progress Bar
+- [werkzeug](https://github.com/pallets/werkzeug) The comprehensive WSGI web application library
 
-***NOTE***: If you encounter an error during `pip install -r requirements.txt`, it's possible that you have not installed `cmake`. `dlib` need `cmake`, and you can install using `apt install cmake -y` (debian/ubuntu) or `yum install cmake -y` (CentOS/Fedora/RedHat).
+***NOTE***: If you encounter an error during `pip install -r requirements.txt`, it's possible that you have not installed `cmake`. `dlib` need `cmake`.
+You can install `cmake` using:  
+
+- `apt install cmake -y` (Debian/Ubuntu).  
+- `yum install cmake -y` (CentOS/Fedora/RedHat).
 
 ## Table Of Contents
 
@@ -368,7 +377,7 @@ The tool is powered with `Flask_MonitoringDashboard` that expose some useful uti
   - [Acknowledgments](#acknowledgments)
 
 ## Prerequisites
-__
+
 The software is coded in `Python`, into the `requirements.txt` file are saved the necessary dependencies.
 
 Create a virtual environment with you favorite `python` package manager
@@ -446,10 +455,10 @@ Open your browser at the `endpoint:port/train` specified in the configuration fi
 
 At this point you can upload the dataset (the previous `zip` file) and wait for the training of the neural network.
 
-
 You can tail the log in `log/pyrecognizer.log` in order to understand the status of the training (`lnav` is your friends).
 
 Once completed, the browser page will be refreshed automatically and you can:
+
 - predict a new photos that the neural network haven't seen before, realated to the peoeple in the dataset.
 - reduce the treeshold and see how you are similar to a celebrity!.
 
@@ -468,41 +477,144 @@ tree
 │       ├── train.html
 │       └── upload.html
 ├── conf                                 # Configuration folder
+│   ├── conf.json                        # Tool configuration file
 │   ├── dashboard.ini                    # File related to the Dashboard configuration
 │   ├── flask_monitoringdashboard.db     # Dashboard database
 │   ├── ssl                              # SSL Certificates folder
 │   │   ├── localhost.crt
 │   │   └── localhost.key
-│   └── test.json                        # Tool configuration file
+
 ├── dataset                              # Model folder + test dataset
-│   ├── face_training_dataset_little.zip
+│   ├── face_training_dataset_little.zip # Model used for test train
 │   ├── face_training_dataset.zip
 │   └── model                            # Neural network model's folder
-│       ├── 20191123_171821              # Neural network model
-│       │   ├── model.clf
-│       │   ├── model.dat
-│       │   └── model.json
+│       ├── 20191123_171821              # Folder for the NN model
+│       │   ├── model.clf                # Neural network dumped
+│       │   ├── model.dat                # Data used for train/tune
+│       │   └── model.json               # Hyperparmaters of the NN
 │       └── README.md
 ├── datastructure                        # Datastructure/Class used
-│   ├── Classifier.py
-│   ├── Person.py
-│   └── Response.py
+│   ├── Administrator.py                 # Class that handle the admin of the NN, for train/tune
+│   ├── Classifier.py                    # Class delegated to predict the photos
+│   ├── Person.py                        # Class delegated to handle the "stuff" related to loading people data
+│   └── Response.py                      # Class delegated to wrap the response
+├── docker-compose.yml                   # docker-compose file for raise up the PyRecognizer (predict + train/tune)
+├── Dockerfile                           # Dockerfile related to the PyRecognizer only (only predict)
+├── LICENSE                              # License file
 ├── log                                  # Log folder
 │   └── pyrecognizer.log
 ├── main.py                              # Main program to spawn the tool
 ├── README.md
 ├── requirements.txt                     # Dependencies file
 ├── uploads                              # Folder that contains the upload data
+├── test                                 # Test folder
+│   ├── conf_test.json
+│   ├── test_classifier.py               # File with test cases
+│   ├── test_images                      # Test data
+│   │   ├── bush_test.jpg
+│   │   ├── multi_face_test.jpg
+│   │   └── unknown_face.jpg
+│   ├── test_log                         # Log of the test
+│   │   └── pyrecognizer.log
+│   └── uploads
+│       ├── predict
+│       ├── training
+│       ├── unknown
+│       └── upload
 │   ├── predict
 │   ├── training
 │   └── upload
-│       ├── photo_2019-11-18_15-47-35.jpg
-│       └── vlcsnap-2019-11-18-16h07m28s988.png
-└── utils                                # Common methods
-    └── util.py
+├── utils                                
+│   ├── add_users.py                     # Python file for add a new user for train/tune the network
+│   └── util.py                          # Common methods
+└── wsgi.py
 ```
 
 ## Example response
+
+- **Missing the photo in request**
+
+```text
+{
+  "response": {
+    "data": null,
+    "date": "2020-01-12 15:12:14.762526",
+    "description": "You have sent a request without the photo to predict :/",
+    "error": "NO_FILE_IN_REQUEST",
+    "status": "KO"
+  }
+}
+```
+
+- **Missing threshold parameter in request**
+
+```text
+{
+  "response": {
+    "data": null,
+    "date": "2020-01-12 15:12:14.769286",
+    "description": "You have sent a request without the `threshold` parameter :/",
+    "error": "THRESHOLD_NOT_PROVIDED",
+    "status": "KO"
+  }
+}
+```
+
+- **Threshold provided is a number not in the properly range**
+
+```text
+{
+  "response": {
+    "data": null,
+    "date": "2020-01-12 15:12:14.776730",
+    "description": "Threshold have to be greater than 0 and lesser than 100!",
+    "error": "THRESHOLD_ERROR_VALUE",
+    "status": "KO"
+  }
+}
+```
+
+- **File in request is not a valid one**
+  
+```text
+{
+  "response": {
+    "data": null,
+    "date": "2019-11-23 18:10:11.038329",
+    "description": "Seems that the file that you have tried to upload is not valid ...",
+    "error": "FILE_NOT_VALID",
+    "status": "KO"
+  }
+}
+```
+
+- **Error parsing the threshold parameter**
+
+```text
+{
+  "response": {
+    "data": null,
+    "date": "2020-01-12 15:12:14.784154",
+    "description": "Threshold is not an integer!",
+    "error": "UNABLE_CAST_INT",
+    "status": "KO"
+  }
+}
+```
+
+- **Dataset upload is not valid**
+  
+```text
+{
+  "response": {
+    "data": null,
+    "date": "2019-11-23 18:10:11.038329",
+    "description": "Seems that the dataset is not valid",
+    "error": "ERROR DURING LOADING DAT",
+    "status": "KO"
+  }
+}
+```
 
 - **Unable to detect a face**
   
@@ -512,7 +624,7 @@ tree
     "data": null,
     "date": "2019-11-23 18:10:11.038329",
     "description": "Seems that in this images there is no face :/",
-    "error": "NO_FACE_FOUND",
+    "error": "FACE_NOT_FOUND",
     "status": "KO"
   }
 }
@@ -525,7 +637,7 @@ tree
   "response": {
     "data": {},
     "date": "2019-11-23 18:17:58.287413",
-    "description": "IMAGE_NOT_RECOGNIZED",
+    "description": "FACE_NOT_RECOGNIZED",
     "error": null,
     "status": "OK"
   }
@@ -562,11 +674,47 @@ tree
 }
 ```
 
+- **Login not successfully**
+
+```text
+{
+  "response": {
+    "data": null,
+    "date": "2019-11-23 18:27:55.761851",
+    "description": "The password inserted is not valid!",
+    "error": "PASSWORD_NOT_VALID",
+    "status": "KO"
+  }
+}
+```
+
+- **Unable to connect to redis**
+
+```text
+{
+  "response": {
+    "data": null,
+    "date": "2019-11-23 18:27:55.761851",
+    "description": "Seems that the DB is not reachable!",
+    "error": "UNABLE_CONNECT_REDIS_DB",
+    "status": "KO"
+  }
+}
+```
+
+
 ## Contributing
 
 - Feel free to open issue in order to __*require new functionality*__;  
 - Feel free to open issue __*if you discover a bug*__;  
 - New idea/request/concept are very appreciated!;  
+
+## Test
+
+In order to run the basic test case, you need to:
+- Spawn the `PyRecognizer` tool using `python main.py`
+- Change directory into the `test/` folder
+- Run `python -m unittest test_classifier.TestPredict`
 
 ## Versioning
 
@@ -574,11 +722,14 @@ We use [SemVer](http://semver.org/) for versioning.
 
 ## Authors
 
-- **Alessio Savi** - *Initial work & Concept* - [Linkedin](https://www.linkedin.com/in/alessio-savi-2136b2188/)  
+- **Alessio Savi** - *Initial work & Concept* - [Linkedin](https://www.linkedin.com/in/alessio-savi-2136b2188/) - [Github](https://github.com/alessiosavi/PyRecognizer)
+
+## Contributors
+- **Alessio Savi** 
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
 
 ## Acknowledgments
 

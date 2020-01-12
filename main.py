@@ -106,7 +106,7 @@ def predict():
             return jsonify(response=response.__dict__)
     if not 0 <= threshold <= 100:
         log.error("Threshold wrong value")
-        response = Response(status="KO",error="THRESHOLD_ERROR_VALUE")
+        response = Response(status="KO", error="THRESHOLD_ERROR_VALUE")
         response.description = "Threshold have to be greater than 0 and lesser than 100!"
         return jsonify(response=response.__dict__)
 
@@ -212,12 +212,17 @@ def login():
     # name (administrator) is not managed
     admin = Administrator("administrator", email, password)
     if not admin.init_redis_connection():
-        return "UNABLE_CONNECT_REDIS_DB"
+        log.error("Unable to connect to redis-db!")
+        response = Response(status="KO", error="UNABLE_CONNECT_REDIS_DB")
+        response.description = "Seems that the DB is not reachable!"
+        return jsonify(response=response.__dict__)
     authenticated = admin.verify_login(password)
     admin.redis_client.close()
     if not authenticated:
-        log.debug("Password is not valid!")
-        return "PASSWORD_NOT_VALID"
+        log.error("Password is not valid!")
+        response = Response(status="KO", error="PASSWORD_NOT_VALID")
+        response.description = "The password inserted is not valid!"
+        return jsonify(response=response.__dict__)
     user = User()
     user.id = email
     login_user(user)
