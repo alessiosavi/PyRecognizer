@@ -22,8 +22,8 @@ from utils.util import init_main_data, random_string, secure_request, find_dupli
 # ===== LOAD CONFIGURATION FILE =====
 CONFIG_FILE = "conf/conf.json"
 
-CFG, log, TMP_UPLOAD_PREDICTION, TMP_UPLOAD_TRAINING, TMP_UPLOAD, TMP_UNKNOWN, DETECTION_MODEL, JITTER, ENCODING_MODELS = init_main_data(
-    CONFIG_FILE)
+CFG, log, TMP_UPLOAD_PREDICTION, TMP_UPLOAD_TRAINING, TMP_UPLOAD, TMP_UNKNOWN, DETECTION_MODEL, JITTER, \
+ENCODING_MODELS, enable_dashboard = init_main_data(CONFIG_FILE)
 
 SSL_ENABLED = CFG["network"]["SSL"]["enabled"]
 # Disable CSRF protection for if you need to use as REST server instead of use the GUI
@@ -49,8 +49,9 @@ if not os.path.isfile(PUB_KEY) or not os.path.isfile(PRIV_KEY):
     SSL_ENABLED = False
 
 # =====FLASK DASHBOARD CONFIGURATION =====
-dashboard.config.init_from(file=CFG["dashboard"]["config_file"])
-dashboard.bind(app, SECRET_KEY)
+if enable_dashboard:
+    dashboard.config.init_from(file=CFG["dashboard"]["config_file"])
+    dashboard.bind(app, SECRET_KEY)
 
 # flask-login
 login_manager.init_app(app)

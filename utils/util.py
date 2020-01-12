@@ -97,6 +97,8 @@ def init_main_data(config_file):
     # Use 68 or 5 points
     encoding_models = CFG["PyRecognizer"]["encoding_models"].lower()
 
+    enable_dashboard = CFG["PyRecognizer"]["enable_dashboard"]
+
     if detection_model != "hog" and detection_model != "cnn":
         log.warning("detection_model selected is not valid! [{}], using 'hog' as default!".format(detection_model))
         detection_model = "hog"
@@ -118,7 +120,7 @@ def init_main_data(config_file):
     if not os.path.exists(TMP_UNKNOWN):
         os.makedirs(TMP_UNKNOWN)
 
-    return CFG, log, TMP_UPLOAD_PREDICTION, TMP_UPLOAD_TRAINING, TMP_UPLOAD, TMP_UNKNOWN, detection_model, jitter, encoding_models
+    return CFG, log, TMP_UPLOAD_PREDICTION, TMP_UPLOAD_TRAINING, TMP_UPLOAD, TMP_UNKNOWN, detection_model, jitter, encoding_models, enable_dashboard
 
 
 def load_logger(level, path, name):
