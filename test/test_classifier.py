@@ -17,18 +17,16 @@ config_file: str = "conf_test.json"
 CFG, log, TMP_UPLOAD_PREDICTION, TMP_UPLOAD_TRAINING, TMP_UPLOAD, TMP_UNKNOWN, detection_model, jitter, encoding_models, _ = init_main_data(
     config_file)
 
-
-def load_classifier(config: Dict) -> Classifier:
-    clf = Classifier()
-    clf.model_path = config["classifier"]["model_path"]
-    clf.load_classifier_from_file(config["classifier"]["timestamp"])
-    return clf
-
-
 url = "http://0.0.0.0:8081/"
 
 
 class TestPredict(unittest.TestCase):
+    def load_classifier(self, config: Dict) -> Classifier:
+        clf = Classifier()
+        clf.model_path = config["classifier"]["model_path"]
+        clf.load_classifier_from_file(config["classifier"]["timestamp"])
+        return clf
+
     clf = load_classifier(CFG)
 
     def test_predict_without_file(self):
@@ -55,6 +53,7 @@ class TestPredict(unittest.TestCase):
         data = {"threshold": "a"}
         r = requests.post(url, files=files, data=data)
         image.close()
+        log.debug(r.content)
         response = json.loads(r.content)["response"]["error"]
         self.assertEqual("UNABLE_CAST_INT", response)
         return
@@ -65,6 +64,7 @@ class TestPredict(unittest.TestCase):
         data = {"threshold": "-1"}
         r = requests.post(url, files=files, data=data)
         image.close()
+        log.debug(r.content)
         response = json.loads(r.content)["response"]["error"]
         self.assertEqual("THRESHOLD_ERROR_VALUE", response)
         return
@@ -75,6 +75,7 @@ class TestPredict(unittest.TestCase):
         data = {"threshold": "1"}
         r = requests.post(url, files=files, data=data)
         image.close()
+        log.debug(r.content)
         response = json.loads(r.content)["response"]
         self.assertEqual("FACE_NOT_FOUND", response["error"])
         return
@@ -85,6 +86,7 @@ class TestPredict(unittest.TestCase):
         data = {"threshold": "1"}
         r = requests.post(url, files=files, data=data)
         image.close()
+        log.debug(r.content)
         response = json.loads(r.content)["response"]
         self.assertIsNone(response["error"])
         data = response["data"]
@@ -97,8 +99,9 @@ class TestPredict(unittest.TestCase):
         files = {"file": image}
         data = {"threshold": "1"}
         r = requests.post(url, files=files, data=data)
-        response = json.loads(r.content)["response"]
         image.close()
+        log.debug(r.content)
+        response = json.loads(r.content)["response"]
         self.assertIsNone(response["error"])
         data = response["data"]
         self.assertEqual(list(data.keys())[0], "Angelina_Jolie")
@@ -112,9 +115,9 @@ class TestPredict(unittest.TestCase):
         files = {"file": image}
         data = {"threshold": "90"}
         r = requests.post(url, files=files, data=data)
-        response = json.loads(r.content)["response"]
         image.close()
-        log.debug(response)
+        log.debug(r.content)
+        response = json.loads(r.content)["response"]
         self.assertEqual("FACE_NOT_RECOGNIZED", response["error"])
         return
 
