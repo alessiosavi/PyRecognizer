@@ -26,7 +26,7 @@
     }
   },
   "classifier": {
-    "trainin_dir": "dataset/images/",
+    "training_dir": "dataset/images/",
     "model_path": "dataset/model/",
     "timestamp": "20191202_153034"
   },

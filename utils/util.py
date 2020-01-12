@@ -88,26 +88,26 @@ def init_main_data(config_file):
     TMP_UPLOAD_TRAINING = CFG["PyRecognizer"]["temp_upload_training"]
     # Save the images sent by the customer
     TMP_UPLOAD = CFG["PyRecognizer"]["temp_upload"]
-    # Save the images of unkown people for future clustering/labeling
+    # Save the images of unknown people for future clustering/labeling
     TMP_UNKNOWN = CFG["PyRecognizer"]["temp_unknown"]
     # Use CNN if you have a GPU, use  HOG if you have CPU only
-    DETECTION_MODEL = CFG["PyRecognizer"]["detection_model"].lower()
+    detection_model = CFG["PyRecognizer"]["detection_model"].lower()
     # Use data augmentation when retrieving face encodings
-    JITTER = CFG["PyRecognizer"]["jitter"]
+    jitter = CFG["PyRecognizer"]["jitter"]
     # Use 68 or 5 points
-    ENCODING_MODELS = CFG["PyRecognizer"]["encoding_models"].lower()
+    encoding_models = CFG["PyRecognizer"]["encoding_models"].lower()
 
-    if DETECTION_MODEL != "hog" and DETECTION_MODEL != "cnn":
-        log.warning("DETECTION_MODEL selected is not valid! [{}], using 'hog' as default!".format(DETECTION_MODEL))
-        DETECTION_MODEL = "hog"
+    if detection_model != "hog" and detection_model != "cnn":
+        log.warning("detection_model selected is not valid! [{}], using 'hog' as default!".format(detection_model))
+        detection_model = "hog"
 
-    if JITTER < 0:
-        log.warning("JITTER can be lower than 0, using 1 as default")
-        JITTER = 1
+    if jitter < 0:
+        log.warning("jitter can be lower than 0, using 1 as default")
+        jitter = 1
 
-    if ENCODING_MODELS != "small" and ENCODING_MODELS != "large":
-        log.warning("ENCODING_MODELS have to be or 'large' or 'small', using 'small' as fallback")
-        ENCODING_MODELS = "small"
+    if encoding_models != "small" and encoding_models != "large":
+        log.warning("encoding_models have to be or 'large' or 'small', using 'small' as fallback")
+        encoding_models = "small"
 
     if not os.path.exists(TMP_UPLOAD_PREDICTION):
         os.makedirs(TMP_UPLOAD_PREDICTION)
@@ -118,7 +118,7 @@ def init_main_data(config_file):
     if not os.path.exists(TMP_UNKNOWN):
         os.makedirs(TMP_UNKNOWN)
 
-    return CFG, log, TMP_UPLOAD_PREDICTION, TMP_UPLOAD_TRAINING, TMP_UPLOAD, TMP_UNKNOWN, DETECTION_MODEL, JITTER, ENCODING_MODELS
+    return CFG, log, TMP_UPLOAD_PREDICTION, TMP_UPLOAD_TRAINING, TMP_UPLOAD, TMP_UNKNOWN, detection_model, jitter, encoding_models
 
 
 def load_logger(level, path, name):
@@ -130,8 +130,9 @@ def load_logger(level, path, name):
     """
     logger = logging.getLogger()  # set up root logger
     if not os.path.exists(path):
+        logger.warning("Folder {} not found, creating a new one ...".format(path))
         os.makedirs(path)
-    filename = '{0}{1}'.format(path, name)
+    filename = os.path.join(path, name)
     handler = TimedRotatingFileHandler(filename, when='H')
     handler.suffix = "%Y-%m-%d.log"
     handler.extMatch = r"^\d{4}-\d{2}-\d{2}\.log$"
@@ -142,6 +143,7 @@ def load_logger(level, path, name):
     handler.setFormatter(logging.Formatter(formatter))
     logger.addHandler(handler)
     logger.setLevel(level)
+    logger.warning("Logger initialized, dumping log in {}".format(filename))
     return logger
 
 
@@ -219,8 +221,13 @@ def remove_dir(directory: str):
     """
     log = logging.getLogger()
     log.debug("remove_dir | Removing directory {}".format(directory))
-    if os.path.isdir(directory):
-        shutil.rmtree(directory)
+    if not os.path.exists(directory):
+        log.warning("remove_dir | Folder {} does not exists!".format(directory))
+        return
+    if not os.path.isdir(directory):
+        log.warning("remove_dir | File {} is not a folder".format(directory))
+        return
+    shutil.rmtree(directory)
 
 
 def verify_extension(folder, file):
@@ -233,24 +240,27 @@ def verify_extension(folder, file):
     log = logging.getLogger()
     extension = os.path.splitext(file)[1]
     log.debug("verify_extension | File: {} | Ext: {}".format(file, extension))
+    filepath = os.path.join(folder, file)
+    if os.path.exists(filepath):
+        if extension == ".zip":
+            log.debug("verify_extension | Verifying zip bomb ...")
+            zp = zipfile.ZipFile(filepath)
+            size = sum([zinfo.file_size for zinfo in zp.filelist])
+            zip_kb = float(size) / (1000 * 1000)  # MB
+            if zip_kb > 250:
+                log.error("verify_extension | ZIP BOMB DETECTED! | Zip file size is to much {} MB ...".format(size))
+                return "ZIP_BOMB!"
+            return "zip"
 
-    if extension == ".zip":
-        log.info("Verifying zip bomb ...")
-        zp = zipfile.ZipFile(os.path.join(folder, file))
-        size = sum([zinfo.file_size for zinfo in zp.filelist])
-        zip_kb = float(size) / (1000 * 1000)  # MB
-        if zip_kb > 250:
-            log.error("ZIP BOMB DETECTED! | Zip file size is to much ...")
-            return "ZIP_BOMB!"
-        return "zip"
-
-    elif extension == ".dat":
-        # Photos have been already analyzed, dataset is ready!
-        return "dat"
+        elif extension == ".dat":
+            # Photos have been already analyzed, dataset is ready!
+            return "dat"
+    else:
+        log.error("verify_extension | Filename {} does not exist!".format(filepath))
     return None
 
 
-def retrieve_dataset(folder_uncompress, zip_file, clf, DETECTION_MODEL, JITTER, encoding_models):
+def retrieve_dataset(folder_uncompress, zip_file, clf, detection_model, jitter, encoding_models):
     """
 
     :param folder_uncompress:
@@ -265,7 +275,7 @@ def retrieve_dataset(folder_uncompress, zip_file, clf, DETECTION_MODEL, JITTER, 
         log.debug("retrieve_dataset | Zip file uploaded")
         folder_name = unzip_data(folder_uncompress, zip_file)
         log.debug("retrieve_dataset | zip file uncompressed!")
-        clf.init_peoples_list(DETECTION_MODEL, JITTER, encoding_models, peoples_path=folder_name)
+        clf.init_peoples_list(detection_model, jitter, encoding_models, peoples_path=folder_name)
         dataset = clf.init_dataset()
         log.debug("retrieve_dataset | Removing [{}]".format(folder_name))
         remove_dir(folder_name)
@@ -273,8 +283,9 @@ def retrieve_dataset(folder_uncompress, zip_file, clf, DETECTION_MODEL, JITTER, 
         log.debug("retrieve_dataset | Pickle data uploaded")
         dataset = pickle.load(zip_file)
     else:
+        log.warning("retrieve_dataset | Unable to understand the file type: {}".format(check))
         dataset = None
-    log.debug("tune_network | Dataset parsed!")
+    log.debug("retrieve_dataset | Dataset parsed!")
     return dataset
 
 
@@ -300,7 +311,7 @@ def secure_request(request, ssl: bool):
     return request
 
 
-def load_image_file(file, mode='RGB', ):
+def load_image_file(file, mode='RGB'):
     """
     Loads an image file (.jpg, .png, etc) into a numpy array
 
@@ -330,8 +341,8 @@ def load_image_file(file, mode='RGB', ):
     elif 1600 <= width <= 3600 or 1600 <= height <= 3600:
         ratio = 1 / 3
 
-    log.debug("Dimension: w: {} | h: {}".format(w, h))
-    log.debug("new ratio -> {}".format(ratio))
+    log.debug("load_image_file | Dimension: w: {} | h: {}".format(w, h))
+    log.debug("load_image_file | New ratio -> {}".format(ratio))
 
     if 0 < ratio < 1:
         # Scale image in case of width > 1600
@@ -344,8 +355,8 @@ def load_image_file(file, mode='RGB', ):
     if w != width:
         # Check if scaling was applied
         maxsize = (w, h)
-        log.debug(
-            "Image have to high dimension, avoiding memory error. Resizing to {}".format(maxsize))
+        log.debug("load_image_file | Image have to high dimension, avoiding memory error. Resizing to {}"
+                  .format(maxsize))
         im.thumbnail(maxsize, PIL.Image.ANTIALIAS)
 
     if mode:
@@ -361,12 +372,13 @@ def find_duplicates(directory: str):
         files.append(_file)
 
     equals = []
+    # Searching duplicates files
     for i in range(len(files)):
         for j in range(i + 1, len(files)):
             if filecmp.cmp(os.path.join(directory, files[i]), os.path.join(directory, files[j])):
                 equals.append(os.path.join(directory, files[i]))
                 break
-    log.info("Removing the following duplicates files: {}".format(equals))
+    log.info("find_duplicates | Removing the following duplicates files: {}".format(equals))
     for _file in equals:
-        print("Removing file: {}".format(_file))
+        log.debug("find_duplicates | Removing file: {}".format(_file))
         os.remove(_file)

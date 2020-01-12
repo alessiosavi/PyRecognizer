@@ -72,7 +72,8 @@ fabric.properties
 
 # CUSTOM
 .idea
-log
+log/
+test/test_log/
 dataset
 *.pyc
 flask_monitoringdashboard.db

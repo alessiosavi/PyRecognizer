@@ -81,31 +81,32 @@ def predict():
     """
     # check if the post request has the file part
     if 'file' not in request.files or request.files['file'].filename == '':
-        flash('No file choose :/', category="error")
+        # flash('No file choose :/', category="error")
         log.warning("predict_api | No file choose!")
-        return redirect(request.url)  # Return to HTML page [GET]
+        response = Response(status="KO", error="NO_FILE_IN_REQUEST")
+        response.description = "You have sent a request without the photo to predict :/"
+        return jsonify(response=response.__dict__)
+        # return redirect(request.url)  # Return to HTML page [GET]
     file = request.files['file']
     threshold = request.form.get('threshold')
     log.debug("Received file [{}] and threshold [{}]".format(file, threshold))
     if threshold is None or len(threshold) == 0:
-        log.warning("Threshold not provided, using 45 as default")
-        threshold = 45
+        log.warning("Threshold not provided")
+        response = Response(status="KO", error="THRESHOLD_NOT_PROVIDED")
+        response.description = "You have sent a request without the `threshold` parameter :/"
+        return jsonify(response=response.__dict__)
     else:
         try:
             threshold = int(threshold)
         except ValueError:
             log.error("Unable to convert threshold")
-            response = Response()
-            response.error = "UNABLE_CAST_I  NT"
+            response = Response(status="KO", error="UNABLE_CAST_INT")
             response.description = "Threshold is not an integer!"
-            response.status = "KO"
             return jsonify(response=response.__dict__)
     if not 0 <= threshold <= 100:
         log.error("Threshold wrong value")
-        response = Response()
-        response.error = "THRESHOLD_ERROR_VALUE"
+        response = Response(status="KO",error="THRESHOLD_ERROR_VALUE")
         response.description = "Threshold have to be greater than 0 and lesser than 100!"
-        response.status = "KO"
         return jsonify(response=response.__dict__)
 
     threshold /= 100

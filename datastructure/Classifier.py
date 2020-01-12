@@ -86,20 +86,15 @@ class Classifier(object):
                 "load_classifier_from_file | Loading classifier from file: {}".format(filename))
             if os.path.isfile(filename):
                 log.debug(
-                    "load_classifier_from_file | File {} exist!".format(filename))
+                    "load_classifier_from_file | File {} exist! Loading classifier ...".format(filename))
                 with open(filename, 'rb') as f:
                     self.classifier = pickle.load(f)
                 log.debug("load_classifier_from_file | Classifier loaded!")
             else:
-                err = "load_classifier_from_file | FATAL | File {} DOES NOT EXIST ...".format(
-                    filename)
-        else:
-            err = "load_classifier_from_file | FATAL | Path {} DOES NOT EXIST ...".format(
-                self.model_path)
+                err = "load_classifier_from_file | FATAL | File {} DOES NOT EXIST ...".format(filename)
         if err is not None:
-            log.error(err)
-            log.error("load_classifier_from_file | Seems that the model is gone :/ | Loading an empty classifier for "
-                      "training purpose ...")
+            log.error("load_classifier_from_file | ERROR: {} | Seems that the model is gone :/ |"
+                      " Loading an empty classifier for training purpose ...".format(err))
             self.classifier = None
         return
 
