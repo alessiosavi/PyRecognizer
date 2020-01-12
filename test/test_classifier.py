@@ -14,7 +14,7 @@ from datastructure.Classifier import Classifier
 from utils.util import init_main_data
 
 config_file: str = "conf_test.json"
-CFG, log, TMP_UPLOAD_PREDICTION, TMP_UPLOAD_TRAINING, TMP_UPLOAD, TMP_UNKNOWN, detection_model, jitter, encoding_models = init_main_data(
+CFG, log, TMP_UPLOAD_PREDICTION, TMP_UPLOAD_TRAINING, TMP_UPLOAD, TMP_UNKNOWN, detection_model, jitter, encoding_models, _ = init_main_data(
     config_file)
 
 
