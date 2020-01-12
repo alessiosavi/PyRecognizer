@@ -20,13 +20,14 @@ CFG, log, TMP_UPLOAD_PREDICTION, TMP_UPLOAD_TRAINING, TMP_UPLOAD, TMP_UNKNOWN, d
 url = "http://0.0.0.0:8081/"
 
 
-class TestPredict(unittest.TestCase):
-    def load_classifier(self, config: Dict) -> Classifier:
-        clf = Classifier()
-        clf.model_path = config["classifier"]["model_path"]
-        clf.load_classifier_from_file(config["classifier"]["timestamp"])
-        return clf
+def load_classifier(config: Dict) -> Classifier:
+    clf = Classifier()
+    clf.model_path = config["classifier"]["model_path"]
+    clf.load_classifier_from_file(config["classifier"]["timestamp"])
+    return clf
 
+
+class TestPredict(unittest.TestCase):
     clf = load_classifier(CFG)
 
     def test_predict_without_file(self):
