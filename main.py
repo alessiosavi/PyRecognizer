@@ -209,7 +209,7 @@ def login():
     email = request.form['email']
     password = request.form['password']
     log.debug("Password in input -> {}".format(password))
-    # name (administrator) is not managed
+    # name (administrator) is not managed, only mail and psw will be used for login validation
     admin = Administrator("administrator", email, password)
     if not admin.init_redis_connection():
         log.error("Unable to connect to redis-db!")

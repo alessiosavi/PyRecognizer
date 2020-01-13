@@ -716,6 +716,11 @@ In order to run the basic test case, you need to:
 - Change directory into the `test/` folder
 - Run `python -m unittest test_classifier.TestPredict`
 
+If you are the admin of the neural network, you can test the Admin related methods:
+- Spawn the docker image of a redis-db `docker run -dt -p 6379:6379 redis`
+- Change directory into the `test/` folder
+- Run `python -m unittest test_classifier.TestAdmin`
+
 ## Versioning
 
 We use [SemVer](http://semver.org/) for versioning.

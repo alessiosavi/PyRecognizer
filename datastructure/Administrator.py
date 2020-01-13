@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import logging
 from sys import exit
 
@@ -20,7 +21,7 @@ class Administrator(object):
             print("Value not allowed! -> {}".format(vars(self)))
             exit(-1)
 
-    def init_redis_connection(self, host: str = "localhost", port: str = "6379", db: int = 0) -> bool:
+    def init_redis_connection(self, host: str = "0.0.0.0", port: str = "6379", db: int = 0) -> bool:
         log.warning("Initializing a new redis connection")
         self.redis_client = redis.Redis(host=host, port=port, db=db)
         try:
@@ -64,7 +65,7 @@ class Administrator(object):
 
     def add_user(self) -> bool:
         if self.verify_user_exist():
-            log.warning("User {} already exist ...".format(vars(self)))
+            log.warning("User {} already exist or db is not reachable ...".format(vars(self)))
             return False
         if not self.validate_password(self.password):
             log.warning("Password not valid")
@@ -104,4 +105,9 @@ class Administrator(object):
         # Check hashed password. Using bcrypt, the salt is saved into the hash itself
         log.warning("Comparing plain: {} with hashed {}".format(
             plain_text_password, hashed_password))
-        return bcrypt.checkpw(plain_text_password.encode('utf-8'), hashed_password)
+        check = bcrypt.checkpw(plain_text_password, hashed_password)
+        if check:
+            log.debug("Password match, user logged in!")
+        else:
+            log.debug("Password mismatch, user NOT logged in!")
+        return check
