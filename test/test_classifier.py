@@ -36,7 +36,6 @@ class TestPredict(unittest.TestCase):
         log.debug(r.content)
         response = json.loads(r.content)["response"]["error"]
         self.assertEqual("NO_FILE_IN_REQUEST", response)
-        return
 
     def test_predict_without_threshold(self):
         image = open('test_images/bush_test.jpg', 'rb')
@@ -46,7 +45,6 @@ class TestPredict(unittest.TestCase):
         log.debug(r.content)
         response = json.loads(r.content)["response"]["error"]
         self.assertEqual("THRESHOLD_NOT_PROVIDED", response)
-        return
 
     def test_predict_without_threshold_not_number(self):
         image = open('test_images/bush_test.jpg', 'rb')
@@ -57,7 +55,6 @@ class TestPredict(unittest.TestCase):
         log.debug(r.content)
         response = json.loads(r.content)["response"]["error"]
         self.assertEqual("UNABLE_CAST_INT", response)
-        return
 
     def test_predict_without_threshold_invalid_number(self):
         image = open('test_images/bush_test.jpg', 'rb')
@@ -68,7 +65,6 @@ class TestPredict(unittest.TestCase):
         log.debug(r.content)
         response = json.loads(r.content)["response"]["error"]
         self.assertEqual("THRESHOLD_ERROR_VALUE", response)
-        return
 
     def test_predict_with_no_face(self):
         image = open('test_images/no_face_test.png', 'rb')
@@ -79,7 +75,6 @@ class TestPredict(unittest.TestCase):
         log.debug(r.content)
         response = json.loads(r.content)["response"]
         self.assertEqual("FACE_NOT_FOUND", response["error"])
-        return
 
     def test_predict_one_face(self):
         image = open('test_images/bush_test.jpg', 'rb')
@@ -93,7 +88,6 @@ class TestPredict(unittest.TestCase):
         data = response["data"]
         self.assertEqual(list(data.keys())[0], "George_W_Bush")
         self.assertGreater(list(data.values())[0], 0.99)
-        return
 
     def test_predict_multiple_face(self):
         image = open('test_images/multi_face_test.jpg', 'rb')
@@ -109,7 +103,6 @@ class TestPredict(unittest.TestCase):
         self.assertEqual(list(data.keys())[1], "Clint_Eastwood")
         self.assertGreater(list(data.values())[0], 0.85)
         self.assertGreater(list(data.values())[1], 0.93)
-        return
 
     def test_predict_unknown_face(self):
         image = open('test_images/unknown_face.jpg', 'rb')
@@ -120,7 +113,6 @@ class TestPredict(unittest.TestCase):
         log.debug(r.content)
         response = json.loads(r.content)["response"]
         self.assertEqual("FACE_NOT_RECOGNIZED", response["error"])
-        return
 
 
 if __name__ == '__main__':
