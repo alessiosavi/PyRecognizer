@@ -195,8 +195,6 @@ def user_loader(email):
     user.redis_client.close()
     if not user_exists:
         return None
-
-    user = User()
     user.id = email
     return user
 

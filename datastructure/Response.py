@@ -7,7 +7,7 @@ import logging
 from datetime import datetime
 
 
-class Response(object):
+class Response():
     """
     Response class is delegated to standardize the response in order to better manage the interaction with other
     external tools
@@ -20,7 +20,8 @@ class Response(object):
         self.data = self.parse_data(data)
         self.date = str(datetime.now())
 
-    def parse_data(self, data):
+    @staticmethod
+    def parse_data(data):
         """
 
         :param data:

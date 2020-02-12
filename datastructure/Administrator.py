@@ -3,22 +3,24 @@ import logging
 
 import bcrypt
 import redis
+from flask_login import UserMixin
 
 log = logging.getLogger()
 log.setLevel(logging.DEBUG)
 
 
-class Administrator(object):
+class Administrator(UserMixin):
 
     def __init__(self, name: str, mail: str, password: str):
         # Identifier will be "name:mail"
         self.name = name
         self.mail = mail
         self.password = password
+        self.id = None
         self.redis_client = None
         if len(name) < 3 or len(mail) < 3 or len(password) < 5:
             print("Value not allowed! -> {}".format(vars(self)))
-            exit(-1)
+            return
 
     def init_redis_connection(self, host: str = "0.0.0.0", port: str = "6379", db: int = 0) -> bool:
         log.warning("Initializing a new redis connection")

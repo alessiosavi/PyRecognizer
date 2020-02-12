@@ -242,6 +242,7 @@ def verify_extension(folder, file):
     extension = os.path.splitext(file)[1]
     log.debug("verify_extension | File: {} | Ext: {}".format(file, extension))
     filepath = os.path.join(folder, file)
+    file_ext = None
     if os.path.exists(filepath):
         if extension == ".zip":
             log.debug("verify_extension | Verifying zip bomb ...")
@@ -251,14 +252,14 @@ def verify_extension(folder, file):
             if zip_kb > 250:
                 log.error("verify_extension | ZIP BOMB DETECTED! | Zip file size is to much {} MB ...".format(size))
                 return "ZIP_BOMB!"
-            return "zip"
+            file_ext = "zip"
 
         elif extension == ".dat":
             # Photos have been already analyzed, dataset is ready!
-            return "dat"
+            file_ext = "dat"
 
     log.error("verify_extension | Filename {} does not exist!".format(filepath))
-    return None
+    return file_ext
 
 
 def retrieve_dataset(folder_uncompress, zip_file, clf, detection_model, jitter, encoding_models):

@@ -11,7 +11,7 @@ from face_recognition.face_recognition_cli import image_files_in_folder
 log = getLogger()
 
 
-class Person(object):
+class Person():
     """
     Represent the necessary information for classify a person's face
     """

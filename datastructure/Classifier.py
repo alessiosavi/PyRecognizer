@@ -22,7 +22,7 @@ from utils.util import dump_dataset, load_image_file
 log = logging.getLogger()
 
 
-class Classifier(object):
+class Classifier():
     """
     Store the knowledge related to the people faces
     """
