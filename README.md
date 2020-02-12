@@ -2,8 +2,8 @@
 
 A simple face recognition engine
 
-[![License](https://img.shields.io/github/license/alessiosavi/PyRecognizer)](https://img.shields.io/github/license/alessiosavi/PyRecognizer) [![Version](https://img.shields.io/github/v/tag/alessiosavi/PyRecognizer)](https://img.shields.io/github/v/tag/alessiosavi/PyRecognizer) [![Code size](https://img.shields.io/github/languages/code-size/alessiosavi/PyRecognizer)](https://img.shields.io/github/languages/code-size/alessiosavi/PyRecognizer) [![Repo size](https://img.shields.io/github/repo-size/alessiosavi/PyRecognizer)](https://img.shields.io/github/repo-size/alessiosavi/PyRecognizer) [![Issue open](https://img.shields.io/github/issues/alessiosavi/PyRecognizer)](https://img.shields.io/github/issues/alessiosavi/PyRecognizer)
-[![Issue closed](https://img.shields.io/github/issues-closed/alessiosavi/PyRecognizer)](https://img.shields.io/github/issues-closed/alessiosavi/PyRecognizer)
+![Python application](https://github.com/alessiosavi/PyRecognizer/workflows/Python%20application/badge.svg)[![License](https://img.shields.io/github/license/alessiosavi/PyRecognizer)](https://img.shields.io/github/license/alessiosavi/PyRecognizer) [![Version](https://img.shields.io/github/v/tag/alessiosavi/PyRecognizer)](https://img.shields.io/github/v/tag/alessiosavi/PyRecognizer) [![Code size](https://img.shields.io/github/languages/code-size/alessiosavi/PyRecognizer)](https://img.shields.io/github/languages/code-size/alessiosavi/PyRecognizer) [![Repo size](https://img.shields.io/github/repo-size/alessiosavi/PyRecognizer)](https://img.shields.io/github/repo-size/alessiosavi/PyRecognizer) [![Issue open](https://img.shields.io/github/issues/alessiosavi/PyRecognizer)](https://img.shields.io/github/issues/alessiosavi/PyRecognizer)
+[![Issue closed](https://img.shields.io/github/issues-closed/alessiosavi/PyRecognizer)](https://img.shields.io/github/issues-closed/alessiosavi/PyRecognizer)[![DeepSource](https://static.deepsource.io/deepsource-badge-light-mini.svg)](https://deepsource.io/gh/alessiosavi/PyRecognizer/?ref=repository-badge)
 
 ## Video guide for train/predict
 
@@ -719,7 +719,7 @@ In order to run the basic test case, you need to:
 If you are the admin of the neural network, you can test the Admin related methods:
 - Spawn the docker image of a redis-db `docker run -dt -p 6379:6379 redis`
 - Change directory into the `test/` folder
-- Run `python -m unittest test_classifier.TestAdmin`
+- Run `python -m unittest test_admin.TestAdmin`
 
 ## Versioning
 

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import logging
-from sys import exit
 
 import bcrypt
 import redis
@@ -53,7 +52,7 @@ class Administrator(object):
         """
         already_exists = self.retrieve_password()
         # Be sure that user does not exists
-        return not already_exists is None
+        return already_exists is not None
 
     def remove_user(self) -> bool:
         if not self.verify_user_exist():

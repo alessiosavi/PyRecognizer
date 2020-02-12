@@ -45,8 +45,6 @@ class Response(object):
                                 "parse_data | Predictions and scores same length")
                         for i in range(len(predictions)):
                             t[predictions[i][0]] = scores[i]
-                        log.debug(
-                            "parse_data | Dict initialized -> {}".format(t))
+                        log.debug("parse_data | Dict initialized -> {}".format(t))
                         return t
-
-        self.date = data
+        return None

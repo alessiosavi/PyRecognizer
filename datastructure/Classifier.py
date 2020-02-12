@@ -7,7 +7,6 @@ import logging
 import os
 import pickle
 import time
-from math import pow
 from pprint import pformat
 
 import face_recognition
@@ -96,7 +95,6 @@ class Classifier(object):
             log.error("load_classifier_from_file | ERROR: {} | Seems that the model is gone :/ |"
                       " Loading an empty classifier for training purpose ...".format(err))
             self.classifier = None
-        return
 
     def train(self, X, Y, timestamp):
         """
@@ -265,10 +263,10 @@ class Classifier(object):
             person.path = os.path.join(self.training_dir, people_name)
             person.init_dataset(detection_model, jitters, encoding_models)
             return person
-        else:
-            log.debug("People {0} invalid folder!".format(
-                os.path.join(self.training_dir, people_name)))
-            return None
+
+        log.debug("People {0} invalid folder!".format(
+            os.path.join(self.training_dir, people_name)))
+        return None
 
     def init_dataset(self):
         """

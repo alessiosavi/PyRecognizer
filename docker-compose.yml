@@ -14,19 +14,19 @@ services:
       - redisdb
     network_mode: "host"
 
-# Necessary only in case of train/tune of the network
-redisdb:
-  container_name: redis
-  image: redis
-  restart: always
-  ports:
-    - "0.0.0.0:6379:6379"
-  expose:
-    - '6379'
-  volumes:
-    - redis-db:/var/lib/redis
-  entrypoint: redis-server --appendonly yes
-  network_mode: "host"
+  # Necessary only in case of train/tune of the network
+  redisdb:
+    container_name: redis
+    image: redis
+    restart: always
+    ports:
+      - "0.0.0.0:6379:6379"
+    expose:
+      - '6379'
+    volumes:
+      - redis-db:/var/lib/redis
+    entrypoint: redis-server --appendonly yes
+    network_mode: "host"
 
 volumes:
   redis-db:

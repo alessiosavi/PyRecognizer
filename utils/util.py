@@ -79,8 +79,7 @@ def init_main_data(config_file):
     except json.decoder.JSONDecodeError:
         raise Exception("Unable to load JSON File: {}".format(config_file))
 
-    log = load_logger(CFG["logging"]["level"], CFG["logging"]
-    ["path"], CFG["logging"]["prefix"])
+    log = load_logger(CFG["logging"]["level"], CFG["logging"]["path"], CFG["logging"]["prefix"])
 
     # Store the image predicted drawing a boc in the face of the person
     TMP_UPLOAD_PREDICTION = CFG["PyRecognizer"]["temp_upload_predict"]
@@ -99,7 +98,7 @@ def init_main_data(config_file):
 
     enable_dashboard = CFG["PyRecognizer"]["enable_dashboard"]
 
-    if detection_model != "hog" and detection_model != "cnn":
+    if detection_model not in ('hog', 'cnn'):
         log.warning("detection_model selected is not valid! [{}], using 'hog' as default!".format(detection_model))
         detection_model = "hog"
 
@@ -107,7 +106,7 @@ def init_main_data(config_file):
         log.warning("jitter can be lower than 0, using 1 as default")
         jitter = 1
 
-    if encoding_models != "small" and encoding_models != "large":
+    if encoding_models not in ('small', 'large'):
         log.warning("encoding_models have to be or 'large' or 'small', using 'small' as fallback")
         encoding_models = "small"
 
@@ -247,7 +246,7 @@ def verify_extension(folder, file):
         if extension == ".zip":
             log.debug("verify_extension | Verifying zip bomb ...")
             zp = zipfile.ZipFile(filepath)
-            size = sum([zinfo.file_size for zinfo in zp.filelist])
+            size = sum(zinfo.file_size for zinfo in zp.filelist)
             zip_kb = float(size) / (1000 * 1000)  # MB
             if zip_kb > 250:
                 log.error("verify_extension | ZIP BOMB DETECTED! | Zip file size is to much {} MB ...".format(size))
@@ -257,8 +256,8 @@ def verify_extension(folder, file):
         elif extension == ".dat":
             # Photos have been already analyzed, dataset is ready!
             return "dat"
-    else:
-        log.error("verify_extension | Filename {} does not exist!".format(filepath))
+
+    log.error("verify_extension | Filename {} does not exist!".format(filepath))
     return None
 
 

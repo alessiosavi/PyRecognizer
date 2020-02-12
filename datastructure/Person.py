@@ -52,7 +52,6 @@ class Person(object):
                 self.dataset["Y"].append(self.name)
             log.debug("Adding {} entries for {}".format(
                 len(self.dataset["X"]), self.name))
-        return
 
     @staticmethod
     def init_dataset_core(detection_model, jitters, encoding_models, img_path=None):

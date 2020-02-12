@@ -96,14 +96,14 @@ def predict():
         response = Response(status="KO", error="THRESHOLD_NOT_PROVIDED")
         response.description = "You have sent a request without the `threshold` parameter :/"
         return jsonify(response=response.__dict__)
-    else:
-        try:
-            threshold = int(threshold)
-        except ValueError:
-            log.error("Unable to convert threshold")
-            response = Response(status="KO", error="UNABLE_CAST_INT")
-            response.description = "Threshold is not an integer!"
-            return jsonify(response=response.__dict__)
+
+    try:
+        threshold = int(threshold)
+    except ValueError:
+        log.error("Unable to convert threshold")
+        response = Response(status="KO", error="UNABLE_CAST_INT")
+        response.description = "Threshold is not an integer!"
+        return jsonify(response=response.__dict__)
     if not 0 <= threshold <= 100:
         log.error("Threshold wrong value")
         response = Response(status="KO", error="THRESHOLD_ERROR_VALUE")
@@ -194,7 +194,7 @@ def user_loader(email):
     user_exists = user.verify_user_exist()
     user.redis_client.close()
     if not user_exists:
-        return
+        return None
 
     user = User()
     user.id = email
@@ -289,5 +289,4 @@ if __name__ == '__main__':
                 PUB_KEY, PRIV_KEY))
     else:
         log.debug("main | HTTPS DISABLED | RUNNING OVER HTTP")
-        app.run(host=CFG["network"]["host"], port=CFG["network"]
-        ["port"], threaded=False, debug=False)
+        app.run(host=CFG["network"]["host"], port=CFG["network"]["port"], threaded=False, debug=False)

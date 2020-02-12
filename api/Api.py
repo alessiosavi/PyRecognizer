@@ -53,7 +53,7 @@ def predict_image(img_path, clf, PREDICTION_PATH, TMP_UNKNOWN, DETECTION_MODEL, 
             now = str(datetime.now())[:23]
             now = now.replace(":", "_")
             now = now.replace(".", "_")
-            head, tail = os.path.split(img_path)
+            _, tail = os.path.split(img_path)
             filename, file_extension = os.path.splitext(tail)
             filename = filename + "__" + now + file_extension
             filename = os.path.join(TMP_UNKNOWN, filename)
@@ -108,16 +108,15 @@ def train_network(folder_uncompress, zip_file, clf, DETECTION_MODEL, JITTER, enc
     if dataset is None:
         return Response(error="ERROR DURING LOADING DAT", description="Seems that the dataset is not valid").__dict__
 
-    else:
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        neural_model_file, _ = clf.train(dataset["X"], dataset["Y"], timestamp)
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    neural_model_file, _ = clf.train(dataset["X"], dataset["Y"], timestamp)
 
-        response = Response(status="OK", data=neural_model_file)
-        response.description = "Model successfully trained!"
-        log.debug("train_network | Tuning phase finished! | {}".format(
-            response.description))
+    response = Response(status="OK", data=neural_model_file)
+    response.description = "Model successfully trained!"
+    log.debug("train_network | Tuning phase finished! | {}".format(
+        response.description))
 
-        return response.__dict__
+    return response.__dict__
 
 
 def tune_network(folder_uncompress, zip_file, clf, DETECTION_MODEL, JITTER, encoding_models):
@@ -134,15 +133,14 @@ def tune_network(folder_uncompress, zip_file, clf, DETECTION_MODEL, JITTER, enco
     if dataset is None:
         return Response(error="ERROR DURING LOADING DAT", description="Seems that the dataset is not valid").__dict__
 
-    else:
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        neural_model_file, elapsed_time = clf.tuning(
-            dataset["X"], dataset["Y"], timestamp)
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    neural_model_file, elapsed_time = clf.tuning(
+        dataset["X"], dataset["Y"], timestamp)
 
-        response = Response(status="OK", data=neural_model_file)
-        response.description = "Model successfully trained! | {}".format(
-            time.strftime("%H:%M:%S.%f", time.gmtime(elapsed_time)))
-        log.debug("train_network | Tuning phase finished! | {}".format(
-            response.description))
+    response = Response(status="OK", data=neural_model_file)
+    response.description = "Model successfully trained! | {}".format(
+        time.strftime("%H:%M:%S.%f", time.gmtime(elapsed_time)))
+    log.debug("train_network | Tuning phase finished! | {}".format(
+        response.description))
 
-        return response.__dict__
+    return response.__dict__
