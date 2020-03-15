@@ -19,6 +19,7 @@ import shutil
 import string
 import zipfile
 from logging.handlers import TimedRotatingFileHandler
+from typing import Dict, Union
 
 import PIL
 import numpy as np
@@ -311,6 +312,22 @@ def secure_request(request, ssl: bool):
         request.headers['Strict-Transport-Security'] = "max-age=60; includeSubDomains; preload"
 
     return request
+
+
+def concatenate_dataset(*dictionary) -> Union[Dict, None]:
+    """
+    Concatenate multiple dataset into a single one
+    """
+    dataset = {}
+    for d in dictionary:
+        if type(d) is dict:
+            dataset.update(d)
+
+    if len(dataset) == 2:
+        if "X" in dataset and "Y" in dataset:
+            if len(dataset["X"]) != len(dataset["Y"]):
+                return None
+    return dataset
 
 
 def load_image_file(file, mode='RGB'):

@@ -235,12 +235,13 @@ class Classifier():
             self.training_dir = peoples_path
         else:
             raise Exception("Dataset (peoples faces) path not provided :/")
+
         # The init process can be parallelized, but BATCH method will perform better
         # pool = ThreadPool(3)
         # self.peoples_list = pool.map(self.init_peoples_list_core, os.listdir(self.training_dir))
 
-        for people_name in tqdm(os.listdir(self.training_dir),
-                                total=len(os.listdir(self.training_dir)), desc="Init people list ..."):
+        files_list = os.listdir(self.training_dir)
+        for people_name in tqdm(files_list, total=len(files_list), desc="Init people list ..."):
             self.peoples_list.append(
                 self.init_peoples_list_core(detection_model, jitters, encoding_models, people_name))
 
@@ -250,9 +251,10 @@ class Classifier():
     def init_peoples_list_core(self, detection_model, jitters, encoding_models, people_name):
         """
         Delegated core method for parallelize operation
-        :detection_model
-        :jitters
-        :param people_name:
+        :param detection_model
+        :param jitters
+        :param people_name
+        :param encoding_models
         :return:
         """
         if os.path.isdir(os.path.join(self.training_dir, people_name)):
@@ -282,10 +284,8 @@ class Classifier():
 
         for people in self.peoples_list:
             log.debug(people.name)
-            for item in people.dataset["X"]:
-                DATASET["X"].append(item)
-            for item in people.dataset["Y"]:
-                DATASET["Y"].append(item)
+            DATASET["X"] = [data for data in people.dataset["X"]]
+            DATASET["Y"] = [data for data in people.dataset["Y"]]
         return DATASET
 
     # The method is delegated to try to retrieve the face from the given image.
