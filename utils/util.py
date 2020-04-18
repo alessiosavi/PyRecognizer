@@ -242,7 +242,7 @@ def verify_extension(folder, file):
     log = logging.getLogger()
     extension = os.path.splitext(file)[1]
     log.debug("verify_extension | File: {} | Ext: {}".format(file, extension))
-    filepath = os.path.join(folder, file)
+    filepath = os.path.join("./", folder, file)
     file_ext = None
     if os.path.exists(filepath):
         if extension == ".zip":
@@ -258,8 +258,8 @@ def verify_extension(folder, file):
         elif extension == ".dat":
             # Photos have been already analyzed, dataset is ready!
             file_ext = "dat"
-
-    log.error("verify_extension | Filename {} does not exist!".format(filepath))
+    else:
+        log.error("verify_extension | Filename {} does not exist!".format(filepath))
     return file_ext
 
 
@@ -284,7 +284,8 @@ def retrieve_dataset(folder_uncompress, zip_file, clf, detection_model, jitter, 
         remove_dir(folder_name)
     elif check == "dat":
         log.debug("retrieve_dataset | Pickle data uploaded")
-        dataset = pickle.load(zip_file)
+        with open(os.path.join("./", folder_uncompress, zip_file.filename), "rb") as f:
+            dataset = pickle.load(f)
     else:
         log.warning("retrieve_dataset | Unable to understand the file type: {}".format(check))
         dataset = None
