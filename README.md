@@ -4,6 +4,7 @@ A simple face recognition engine
 
 ![Python application](https://github.com/alessiosavi/PyRecognizer/workflows/Python%20application/badge.svg)[![License](https://img.shields.io/github/license/alessiosavi/PyRecognizer)](https://img.shields.io/github/license/alessiosavi/PyRecognizer) [![Version](https://img.shields.io/github/v/tag/alessiosavi/PyRecognizer)](https://img.shields.io/github/v/tag/alessiosavi/PyRecognizer) [![Code size](https://img.shields.io/github/languages/code-size/alessiosavi/PyRecognizer)](https://img.shields.io/github/languages/code-size/alessiosavi/PyRecognizer) [![Repo size](https://img.shields.io/github/repo-size/alessiosavi/PyRecognizer)](https://img.shields.io/github/repo-size/alessiosavi/PyRecognizer) [![Issue open](https://img.shields.io/github/issues/alessiosavi/PyRecognizer)](https://img.shields.io/github/issues/alessiosavi/PyRecognizer)
 [![Issue closed](https://img.shields.io/github/issues-closed/alessiosavi/PyRecognizer)](https://img.shields.io/github/issues-closed/alessiosavi/PyRecognizer)[![DeepSource](https://static.deepsource.io/deepsource-badge-light-mini.svg)](https://deepsource.io/gh/alessiosavi/PyRecognizer/?ref=repository-badge)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Falessiosavi%2FPyRecognizer.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Falessiosavi%2FPyRecognizer?ref=badge_shield)
 
 ## Video guide for train/predict
 
@@ -375,6 +376,9 @@ You can install `cmake` using:
   - [Authors](#authors)
   - [License](#license)
   - [Acknowledgments](#acknowledgments)
+
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Falessiosavi%2FPyRecognizer.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Falessiosavi%2FPyRecognizer?ref=badge_large)
 
 ## Prerequisites
 
