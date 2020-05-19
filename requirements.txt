@@ -1,4 +1,4 @@
-Cython==0.29.16
+Cython==0.29.18
 numpy==1.18.3
 requests
 flask-login==0.5.0
