@@ -7,7 +7,7 @@ redis==3.5.3
 Flask_MonitoringDashboard==3.1.0
 Flask==1.1.2
 Werkzeug==1.0.1
-tqdm==4.51.0
+tqdm==4.53.0
 olefile==0.46
 Pillow==8.0.1
 py-bcrypt==0.4
