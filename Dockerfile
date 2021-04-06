@@ -1,4 +1,4 @@
-FROM python:latest
+FROM python:3-slim
 
 # The latest alpine images don't have some tools like (`git` and `bash`).
 # Adding git, bash and openssh to the image
