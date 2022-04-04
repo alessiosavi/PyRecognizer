@@ -9,6 +9,6 @@ Flask==1.1.2
 Werkzeug==2.0.3
 tqdm==4.62.3
 olefile==0.46
-Pillow==8.3.2
+Pillow==9.1.0
 py-bcrypt==0.4
 scikit_learn==0.22.2.post1
