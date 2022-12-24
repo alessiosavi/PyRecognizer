@@ -12,3 +12,4 @@ olefile==0.46
 Pillow==8.3.2
 py-bcrypt==0.4
 scikit_learn==0.22.2.post1
+setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability
