@@ -1,7 +1,7 @@
 Cython==0.29.27
 numpy==1.19.4
 requests
-flask-login==0.5.0
+flask-login==0.6.2
 face_recognition==1.3.0
 redis==4.1.2
 Flask_MonitoringDashboard==3.1.1
